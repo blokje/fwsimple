@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function
+#from __future__ import unicode_literals, print_function
 import glob
 import pprint
 import ConfigParser
@@ -269,104 +269,18 @@ BASIC_IPTABLES_INIT = [
     ['-X'],    # Delete user-defined chains
     ['-F'],    # Flush default chains
     ['-Z'],    # Zero counters
-    ['-A',
-     'INPUT',
-     '-m',
-     'conntrack',
-     '--ctstate',
-     'RELATED,ESTABLISHED',
-     '-j',
-     'ACCEPT'],
-    ['-A',
-     'FORWARD',
-     '-m',
-     'conntrack',
-     '--ctstate',
-     'RELATED,ESTABLISHED',
-     '-j',
-     'ACCEPT'],
-    ['-A',
-     'OUTPUT',
-     '-m',
-     'conntrack',
-     '--ctstate',
-     'RELATED,ESTABLISHED',
-     '-j',
-     'ACCEPT'],
-    ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'INVALID', '-j', 'DROP'],
+    ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
+    ['-A', 'FORWARD', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
+    ['-A', 'OUTPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
+    ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'INVALID', '-j', 'DROP']
 ]
 
 BASIC_IP4TABLES_INIT = [
-    ['-A',
-     'INPUT',
-     '-p',
-     'icmp',
-     '-m',
-     'icmp',
-     '--icmp-type',
-     '8',
-     '-j',
-     'ACCEPT',
-     '-m',
-     'comment',
-     '--comment',
-     '[ICMP] Echo Request'],
-    ['-A',
-     'INPUT',
-     '-p',
-     'icmp',
-     '-m',
-     'icmp',
-     '--icmp-type',
-     '3/4',
-     '-j',
-     'ACCEPT',
-     '-m',
-     'comment',
-     '--comment',
-     '[ICMP] Fragmentation needed'],
-    ['-A',
-     'INPUT',
-     '-p',
-     'icmp',
-     '-m',
-     'icmp',
-     '--icmp-type',
-     '3/3',
-     '-j',
-     'ACCEPT',
-     '-m',
-     'comment',
-     '--comment',
-     '[ICMP] Port unreachable'],
-    ['-A',
-     'INPUT',
-     '-p',
-     'icmp',
-     '-m',
-     'icmp',
-     '--icmp-type',
-     '3/1',
-     '-j',
-     'ACCEPT',
-     '-m',
-     'comment',
-     '--comment',
-     '[ICMP] Host unreachable'],
-    ['-A',
-     'INPUT',
-     '-p',
-     'icmp',
-     '-m',
-     'icmp',
-     '--icmp-type',
-     '4',
-     '-j',
-     'ACCEPT',
-     '-m',
-     'comment',
-     '--comment',
-     '[ICMP] Source Quench (RFC 792)'],
+    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '8', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Echo Request'],
+    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/4', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Fragmentation needed'],
+    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/3', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Port unreachable'],
+    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/1', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Host unreachable'],
+    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '4', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Source Quench (RFC 792)']
 ]
 
 BASIC_IP6TABLES_INIT = [
@@ -379,8 +293,6 @@ BASIC_IP6TABLES_INIT = [
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '136', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor advertisement'],
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '128', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Echo Request']
 ] 
-import pprint
-pprint.pprint(BASIC_IP6TABLES_INIT, width=1000)
 # for line in BASIC_IPTABLES_INIT+BASIC_IP4TABLES_INIT:
 #    print(" ".join(line))
 fw = Firewall('/home/rick/Source/fwsimple/config/fwsimple.cfg')
