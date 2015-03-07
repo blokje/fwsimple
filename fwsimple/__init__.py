@@ -371,9 +371,10 @@ class FirewallRuleFilter(FirewallRule):
         if self.protocol:
             iptables += ['-p', self.protocol]
 
-            if self.multiport:
-                iptables += ['-m', 'multiport']
-            iptables += ['--dport', str(self.port)]
+            if self.port:
+                if self.multiport:
+                    iptables += ['-m', 'multiport']
+                iptables += ['--dport', str(self.port)]
 
         if self.log:
             log = iptables + \
