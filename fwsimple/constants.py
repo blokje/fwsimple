@@ -3,6 +3,8 @@ BASIC_IPTABLES_INIT = [
     ['-F'],    # Flush all chains
     ['-X'],    # Delete user-defined chains
     ['-Z'],    # Zero counters
+    ['-A', 'INPUT', '-i', 'lo', '-j', 'ACCEPT'],
+    ['-A', 'OUTPUT', '-o', 'lo', '-j', 'ACCEPT'],
     ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
     ['-A', 'FORWARD', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
     ['-A', 'OUTPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
