@@ -8,6 +8,7 @@ import codecs
 import ipaddress
 import subprocess
 
+
 class Firewall():
 
     """ The Firewall itself """
@@ -28,7 +29,8 @@ class Firewall():
         # Verify configuration
         self.ruleset_location = self.config.get('fwsimple', 'rulesets')
         try:
-            self.exec_type = constants.EXEC_MAP[self.config.get('fwsimple', 'engine')]
+            self.exec_type = constants.EXEC_MAP[
+                self.config.get('fwsimple', 'engine')]
         except KeyError:
             raise Exception('Unsupported engine!')
 
@@ -48,7 +50,7 @@ class Firewall():
                 if new_expression == expression:
                     return True
         return False
-    
+
     def get_specific_zone_expressions(self):
         for expression in self.get_zone_expressions(True):
             yield expression
@@ -65,11 +67,9 @@ class Firewall():
                 elif expression.specific is specific:
                     yield expression
 
-            
     def load_rulesets(self):
         for ruleset in glob.glob(self.ruleset_location + '/*.rule'):
             self.parse_ruleset(ruleset)
-
 
     def parse_ruleset(self, ruleset_file):
         ruleset = ConfigParser.SafeConfigParser(defaults={'type': 'filter'})
@@ -101,13 +101,13 @@ class Firewall():
 
         # Default configurations
         for _ in constants.BASIC_IPTABLES_INIT:
-            yield [ 'iptables' ] + _
-            yield [ 'ip6tables' ] + _
+            yield ['iptables'] + _
+            yield ['ip6tables'] + _
         for _ in constants.BASIC_IP4TABLES_INIT:
-            yield [ 'iptables' ] + _
+            yield ['iptables'] + _
         for _ in constants.BASIC_IP6TABLES_INIT:
-            yield [ 'ip6tables' ] + _
-           
+            yield ['ip6tables'] + _
+
         # Zones will be created in IPv4 AND IPv6
         # 1. Create zones
         # 2. Add specific expressions
@@ -115,16 +115,16 @@ class Firewall():
 
         for zone in self.zones:
             for creator in zone.args_iptables():
-                yield [ 'iptables' ] + creator
-                yield [ 'ip6tables' ] + creator
+                yield ['iptables'] + creator
+                yield ['ip6tables'] + creator
 
         for expression in self.get_specific_zone_expressions():
             for creator in expression.args_iptables():
-                yield [ 'iptables' ] + creator
+                yield ['iptables'] + creator
 
         for expression in self.get_nonspecific_zone_expressions():
             for creator in expression.args_iptables():
-                yield [ 'iptables' ] + creator
+                yield ['iptables'] + creator
 
         # Insert rules
         for action in ['discard', 'reject', 'accept']:
@@ -132,26 +132,27 @@ class Firewall():
                 args = rule.args_iptables()
                 if rule.proto & constants.PROTO_IPV4:
                     for _ in args:
-                        yield [ 'iptables' ] + _
+                        yield ['iptables'] + _
                 if rule.proto & constants.PROTO_IPV6:
                     for _ in args:
-                        yield [ 'ip6tables' ] + _
-        
+                        yield ['ip6tables'] + _
+
         # Closeup all zones
         for zone in self.zones:
             for creator in zone.args_iptables_return():
-                yield [ 'iptables' ] + creator
-                yield [ 'ip6tables' ] + creator
+                yield ['iptables'] + creator
+                yield ['ip6tables'] + creator
 
         # Add default policies
         for direction in constants.DIRECTION:
-            action = constants.IPTABLES_ACTIONS[self.__get_default_policy(direction)]
+            action = constants.IPTABLES_ACTIONS[
+                self.__get_default_policy(direction)]
             chain = constants.IPTABLES_DIRECTION[direction]
-            cmd = [ '-A', chain, '-j',  action ]
-            yield [ 'iptables' ] + cmd
-            yield [ 'ip6tables' ] + cmd
+            cmd = ['-A', chain, '-j', action]
+            yield ['iptables'] + cmd
+            yield ['ip6tables'] + cmd
 
-        
+
 class FirewallExecution():
 
     def __str__(self):
@@ -183,7 +184,7 @@ class FirewallZone(FirewallExecution):
             self._firewall = firewall
             self._zone = zone
             self.expression = expression
-            
+
             # Check if expression is specific (specific zones preceed generic
             # zones)
             if ':' in self.expression:
@@ -198,18 +199,19 @@ class FirewallZone(FirewallExecution):
         def args_iptables(self):
             creators = []
             for direction in constants.DIRECTION:
-                cmd = [ '-A', constants.IPTABLES_DIRECTION[direction] ]
-                
-                if direction == 'out':
-                    cmd += [ '-o', self.interface ]
-                    if self.source:
-                        cmd += [ '-d', self.source ]
-                else:
-                    cmd += [ '-i', self.interface ]
-                    if self.source:
-                        cmd += [ '-s', self.source ]
+                cmd = ['-A', constants.IPTABLES_DIRECTION[direction]]
 
-                cmd += [ '-j', '%s_%s' % (constants.DIRECTION[direction], self._zone.name) ]
+                if direction == 'out':
+                    cmd += ['-o', self.interface]
+                    if self.source:
+                        cmd += ['-d', self.source]
+                else:
+                    cmd += ['-i', self.interface]
+                    if self.source:
+                        cmd += ['-s', self.source]
+
+                cmd += ['-j', '%s_%s' %
+                        (constants.DIRECTION[direction], self._zone.name)]
 
                 creators.append(cmd)
             return creators
@@ -237,18 +239,19 @@ class FirewallZone(FirewallExecution):
     def args_iptables(self):
         creators = []
         for direction in constants.DIRECTION:
-            cmd = [ '-N', "%s_%s" % (constants.DIRECTION[direction], self.name) ]
+            cmd = ['-N', "%s_%s" %
+                   (constants.DIRECTION[direction], self.name)]
             creators.append(cmd)
         return creators
 
     def args_iptables_return(self):
         creators = []
         for direction in constants.DIRECTION:
-            cmd = [ '-A', "%s_%s" % (constants.DIRECTION[direction], self.name) ]
-            cmd += [ '-j', 'RETURN' ]
+            cmd = ['-A', "%s_%s" %
+                   (constants.DIRECTION[direction], self.name)]
+            cmd += ['-j', 'RETURN']
             creators.append(cmd)
         return creators
-
 
 
 class FirewallRule(FirewallExecution):
@@ -279,7 +282,7 @@ class FirewallRuleFilter(FirewallRule):
 
         # Public : Meta data
         self.name = name
-        
+
         if self._firewall.has_zone(zone):
             self.zone = zone
         else:
@@ -350,8 +353,6 @@ class FirewallRuleFilter(FirewallRule):
                 self.proto -= constants.PROTO_IPV6
             elif self.destination.version == 6:
                 self.proto -= constants.PROTO_IPV4
-           
-
 
     def args_iptables(self):
         iptables = ['-A', '%s_%s' %
@@ -387,13 +388,15 @@ class FirewallRuleFilter(FirewallRule):
                            for var in myvars if not var.startswith('_') and myvars[var] is not None])
         return '<FirewallRuleFilter(%s)>' % myrepr
 
+
 class FirewallRuleNAT(FirewallRule):
     pass
+
 
 def main():
     """ Entry point """
     fw = Firewall('/etc/fwsimple/fwsimple.cfg')
     fw.apply()
 __version__ = '0.1'
-__author__  = 'Rick Voormolen'
+__author__ = 'Rick Voormolen'
 __email__ = 'rick@voormolen.org'

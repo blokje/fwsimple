@@ -28,7 +28,7 @@ BASIC_IP6TABLES_INIT = [
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '135', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor sollicitation'],
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '136', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor advertisement'],
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '128', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Echo Request']
-] 
+]
 
 DIRECTION = {'in': 'IN', 'out': 'OUT', 'forward': 'FWD'}
 
@@ -40,7 +40,7 @@ EXEC_MAP = {
 }
 
 IPTABLES_ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
-IPTABLES_DIRECTION = { 'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD' }
+IPTABLES_DIRECTION = {'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD'}
 
 PROTO_IPV4 = 1
 PROTO_IPV6 = 2
