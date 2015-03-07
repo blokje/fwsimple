@@ -306,7 +306,9 @@ class FirewallRuleFilter(FirewallRule):
             self.destination = None
 
         # Public : Protocol/ports
-        if ',' in port or '-' in port:
+        if not port:
+            self.port = None
+        elif ',' in port or '-' in port:
             self.multiport = True
             self.port = []
             ports = port.split(',')
