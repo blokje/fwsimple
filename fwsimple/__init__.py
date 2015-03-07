@@ -63,7 +63,6 @@ class Firewall():
                 if specific is None:
                     yield expression
                 elif expression.specific is specific:
-                    print(expression.specific,specific,expression.specific is specific,expression)
                     yield expression
 
             
