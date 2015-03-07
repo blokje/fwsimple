@@ -1,0 +1,13 @@
+[ssh-lan]
+zone = lan
+source = 192.168.68.0/24
+destination = 192.168.68.5
+protocol = tcp
+port = 22
+
+[ssh-wan]
+zone = lan
+destination = 192.168.68.5
+protocol = tcp
+port = 22
+log = yes

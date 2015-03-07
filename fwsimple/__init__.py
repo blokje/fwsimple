@@ -1,18 +1,12 @@
-#from __future__ import unicode_literals, print_function
+from __future__ import unicode_literals, print_function, absolute_import
+from . import constants
 import glob
 import pprint
 import ConfigParser
 import os
 import codecs
 import ipaddress
-
-EXEC_IPTABLES = 1
-EXEC_PF = 2
-EXEC_MAP = {
-    'iptables': EXEC_IPTABLES,
-    'pf': EXEC_PF,
-}
-
+import subprocess
 
 class Firewall():
 
@@ -25,6 +19,7 @@ class Firewall():
 
         self.load_config(configfile)
         self.load_zones()
+        self.load_rulesets()
 
     def load_config(self, configfile):
         self.config = ConfigParser.SafeConfigParser()
@@ -33,7 +28,7 @@ class Firewall():
         # Verify configuration
         self.ruleset_location = self.config.get('fwsimple', 'rulesets')
         try:
-            self.exec_type = EXEC_MAP[self.config.get('fwsimple', 'engine')]
+            self.exec_type = constants.EXEC_MAP[self.config.get('fwsimple', 'engine')]
         except KeyError:
             raise Exception('Unsupported engine!')
 
@@ -41,21 +36,41 @@ class Firewall():
         for zone in self.config.items('zones'):
             self.zones.append(FirewallZone(self, *zone))
 
+    def has_zone(self, zone_name):
+        for zone in self.zones:
+            if zone.name == zone_name:
+                return True
+        return False
+
     def has_zone_expression(self, new_expression):
         for zone in self.zones:
             for expression in zone.expressions:
                 if new_expression == expression:
                     return True
         return False
+    
+    def get_specific_zone_expressions(self):
+        for expression in self.get_zone_expressions(True):
+            yield expression
 
+    def get_nonspecific_zone_expressions(self):
+        for expression in self.get_zone_expressions(False):
+            yield expression
+
+    def get_zone_expressions(self, specific=None):
+        for zone in self.zones:
+            for expression in zone.expressions:
+                if specific is None:
+                    yield expression
+                elif expression.specific is specific:
+                    print(expression.specific,specific,expression.specific is specific,expression)
+                    yield expression
+
+            
     def load_rulesets(self):
         for ruleset in glob.glob(self.ruleset_location + '/*.rule'):
             self.parse_ruleset(ruleset)
 
-        for action in ['discard', 'reject', 'accept']:
-            print("## %s ##" % action)
-            for rule in [rule for rule in self.rules if rule.action == action]:
-                print(rule)
 
     def parse_ruleset(self, ruleset_file):
         ruleset = ConfigParser.SafeConfigParser(defaults={'type': 'filter'})
@@ -73,6 +88,58 @@ class Firewall():
             except TypeError as e:
                 print("Error in %s" % name)
 
+    def apply(self):
+        """ Apply firewall config """
+        for runcmd in self.__execute_iptables():
+            if subprocess.call(runcmd) != 0:
+                print(runcmd)
+
+    def __execute_iptables(self):
+        """ Return all commands to be executed for IPtables """
+
+        # Default configurations
+        for _ in constants.BASIC_IPTABLES_INIT:
+            yield [ 'iptables' ] + _
+            yield [ 'ip6tables' ] + _
+        for _ in constants.BASIC_IP4TABLES_INIT:
+            yield [ 'iptables' ] + _
+        for _ in constants.BASIC_IP6TABLES_INIT:
+            yield [ 'ip6tables' ] + _
+           
+        # Zones will be created in IPv4 AND IPv6
+        # 1. Create zones
+        # 2. Add specific expressions
+        # 3. Add generic expressions
+
+        for zone in self.zones:
+            for creator in zone.args_iptables():
+                yield [ 'iptables' ] + creator
+                yield [ 'ip6tables' ] + creator
+
+        for expression in self.get_specific_zone_expressions():
+            for creator in expression.args_iptables():
+                yield [ 'iptables' ] + creator
+
+        for expression in self.get_nonspecific_zone_expressions():
+            for creator in expression.args_iptables():
+                yield [ 'iptables' ] + creator
+
+        # Insert rules
+        for action in ['discard', 'reject', 'accept']:
+            for rule in [rule for rule in self.rules if rule.action == action]:
+                args = rule.args_iptables()
+                if rule.proto & constants.PROTO_IPV4:
+                    for _ in args:
+                        yield [ 'iptables' ] + _
+                if rule.proto & constants.PROTO_IPV6:
+                    for _ in args:
+                        yield [ 'ip6tables' ] + _
+        
+        # Closeup all zones
+        for zone in self.zones:
+            for creator in zone.args_iptables_return():
+                yield [ 'iptables' ] + creator
+                yield [ 'ip6tables' ] + creator
 
 class FirewallExecution():
 
@@ -80,7 +147,7 @@ class FirewallExecution():
         """ Return formatted string based on execution type """
         args = None
 
-        if self._firewall.exec_type == EXEC_IPTABLES:
+        if self._firewall.exec_type == constants.EXEC_IPTABLES:
             args = self.args_iptables()
 
         if not args:
@@ -97,25 +164,50 @@ class FirewallZone(FirewallExecution):
 
     """ A firewall zone will be used for initial packet filtering """
 
-    class SubExpression():
+    class SubExpression(FirewallExecution):
 
         """ A subexpression is a small part of the zone definition """
 
-        def __init__(self, expression):
+        def __init__(self, firewall, zone, expression):
+            self._firewall = firewall
+            self._zone = zone
             self.expression = expression
-
+            
             # Check if expression is specific (specific zones preceed generic
             # zones)
             if ':' in self.expression:
-                self.specific = True
                 (self.interface, self.source) = self.expression.split(':')
             else:
-                self.specific = False
                 self.interface = self.expression
                 self.source = None
 
         def __eq__(self, other):
             return ((self.interface == other.interface) and (self.source == other.source))
+
+        def args_iptables(self):
+            creators = []
+            for direction in constants.DIRECTION:
+                cmd = [ '-A', constants.DIRECTION_MAP_IPTABLES[direction] ]
+                
+                if direction == 'out':
+                    cmd += [ '-o', self.interface ]
+                    if self.source:
+                        cmd += [ '-d', self.source ]
+                else:
+                    cmd += [ '-i', self.interface ]
+                    if self.source:
+                        cmd += [ '-s', self.source ]
+
+                cmd += [ '-j', '%s_%s' % (constants.DIRECTION[direction], self._zone.name) ]
+
+                creators.append(cmd)
+            return creators
+
+        @property
+        def specific(self):
+            if self.source:
+                return True
+            return False
 
     def __init__(self, firewall, name, expression):
         """ Define a firewall zone """
@@ -124,15 +216,28 @@ class FirewallZone(FirewallExecution):
 
         self.name = name
         for expr in expression.split(','):
-            subexpression = self.SubExpression(expr)
+            subexpression = self.SubExpression(self._firewall, self, expr)
             if self._firewall.has_zone_expression(subexpression):
                 raise Warning(
                     'Duplicate zone definition detected (zone=%s, expression=%s)' % (self.name, expr))
             else:
                 self.expressions.append(subexpression)
 
-#    def args_iptables(self):
-#        return None
+    def args_iptables(self):
+        creators = []
+        for direction in constants.DIRECTION:
+            cmd = [ '-N', "%s_%s" % (constants.DIRECTION[direction], self.name) ]
+            creators.append(cmd)
+        return creators
+
+    def args_iptables_return(self):
+        creators = []
+        for direction in constants.DIRECTION:
+            cmd = [ '-A', "%s_%s" % (constants.DIRECTION[direction], self.name) ]
+            cmd += [ '-j', 'RETURN' ]
+            creators.append(cmd)
+        return creators
+
 
 
 class FirewallRule(FirewallExecution):
@@ -150,19 +255,8 @@ class FirewallRule(FirewallExecution):
         return self.action == 'discard'
 
 
-RULE_DIRECTION_IN = 0
-RULE_DIRECTION_OUT = 1
-RULE_DIRECTION_FWD = 2
-RULE_DIRECTION = {
-    'in': RULE_DIRECTION_IN,
-    'out': RULE_DIRECTION_OUT,
-    'forward': RULE_DIRECTION_FWD,
-}
-
-
 class FirewallRuleFilter(FirewallRule):
     ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
-    DIRECTION = {'in': 'IN', 'out': 'OUT', 'forward': 'FWD'}
 
     def __init__(
         self, name, firewall, zone, source=None, destination=None, port=None,
@@ -175,8 +269,13 @@ class FirewallRuleFilter(FirewallRule):
 
         # Public : Meta data
         self.name = name
-        self.zone = zone
-        if direction in self.DIRECTION:
+        
+        if self._firewall.has_zone(zone):
+            self.zone = zone
+        else:
+            raise Warning('Zone %s is not defined!' % zone)
+
+        if direction in constants.DIRECTION:
             self.direction = direction
         else:
             raise Exception(
@@ -229,26 +328,39 @@ class FirewallRuleFilter(FirewallRule):
                     'You cannot mix IPv4 and IPv6 addresses [source=%s, destination=%s] (%s)' %
                     (self.source, self.destination, self.name))
 
+        # Determine protocol level
+        self.proto = constants.PROTO_IPV4 + constants.PROTO_IPV6
+        if self.source:
+            if self.source.version == 4:
+                self.proto -= constants.PROTO_IPV6
+            elif self.source.version == 6:
+                self.proto -= constants.PROTO_IPV4
+        elif self.destination:
+            if self.destination.version == 4:
+                self.proto -= constants.PROTO_IPV6
+            elif self.destination.version == 6:
+                self.proto -= constants.PROTO_IPV4
+           
+
+
     def args_iptables(self):
         iptables = ['-A', '%s_%s' %
-                    (self.DIRECTION[self.direction], self.zone)]
+                    (constants.DIRECTION[self.direction], self.zone)]
         iptables += ['-m', 'conntrack', '--ctstate', 'NEW']
         iptables += ['-m', 'comment', '--comment', self.name]
 
         if self.source:
-            iptables += ['-s', self.source]
+            iptables += ['-s', str(self.source)]
 
         if self.destination:
-            iptables += ['-d', self.destination]
+            iptables += ['-d', str(self.destination)]
 
         if self.protocol:
             iptables += ['-p', self.protocol]
 
             if self.multiport:
                 iptables += ['-m', 'multiport']
-            iptables += ['--dport', self.port]
-
-        iptables += ['-j', self.ACTIONS[self.action]]
+            iptables += ['--dport', str(self.port)]
 
         if self.log:
             log = iptables + \
@@ -265,50 +377,9 @@ class FirewallRuleFilter(FirewallRule):
                            for var in myvars if not var.startswith('_') and myvars[var] is not None])
         return '<FirewallRuleFilter(%s)>' % myrepr
 
-BASIC_IPTABLES_INIT = [
-    ['-X'],    # Delete user-defined chains
-    ['-F'],    # Flush default chains
-    ['-Z'],    # Zero counters
-    ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
-    ['-A', 'FORWARD', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
-    ['-A', 'OUTPUT', '-m', 'conntrack', '--ctstate', 'RELATED,ESTABLISHED', '-j', 'ACCEPT'],
-    ['-A', 'INPUT', '-m', 'conntrack', '--ctstate', 'INVALID', '-j', 'DROP']
-]
+class FirewallRuleNAT(FirewallRule):
+    pass
 
-BASIC_IP4TABLES_INIT = [
-    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '8', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Echo Request'],
-    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/4', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Fragmentation needed'],
-    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/3', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Port unreachable'],
-    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '3/1', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Host unreachable'],
-    ['-A', 'INPUT', '-p', 'icmp', '-m', 'icmp', '--icmp-type', '4', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMP] Source Quench (RFC 792)']
-]
-
-BASIC_IP6TABLES_INIT = [
-    ['-A', 'INPUT', '-p', '59', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[IPv6] No next header RFC2460'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '2', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Packet too big'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '3', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Time exceeded'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '133', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Router sollicitation'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '134', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Router advertisement'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '135', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor sollicitation'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '136', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor advertisement'],
-    ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '128', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Echo Request']
-] 
-# for line in BASIC_IPTABLES_INIT+BASIC_IP4TABLES_INIT:
-#    print(" ".join(line))
-fw = Firewall('/home/rick/Source/fwsimple/config/fwsimple.cfg')
-# fw.load_rulesets()
-# print("COMMIT")
-# print("""#
-#*filter
-#:INPUT ACCEPT [48:7832]
-#:FORWARD ACCEPT [0:0]
-#:OUTPUT ACCEPT [42:5582]
-#:IN_all - [0:0]
-#:IN_tunnels - [0:0]
-#:IN_lan - [0:0]
-#:IN_wan - [0:0]
-#:OUT_all - [0:0]
-#:OUT_tunnels - [0:0]
-#:OUT_lan - [0:0]
-#:OUT_wan - [0:0]
-#""")
+__version__ = '0.1'
+__author__  = 'Rick Voormolen'
+__email__ = 'rick@voormolen.org'

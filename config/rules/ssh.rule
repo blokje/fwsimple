@@ -1,0 +1,18 @@
+; Every rule should have an unique name which will be added in the
+; comment as "<file>/<name>"
+
+[ssh-1]
+zone = public
+source = 192.168.68.0/24
+protocol = tcp
+port = 22
+action = accept
+
+[ssh-2]
+zone = public
+source = 192.168.100.10
+destination = 192.168.100.1
+protocol = tcp
+port = 22
+log = True
+action = accept

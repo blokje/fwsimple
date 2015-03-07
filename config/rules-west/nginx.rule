@@ -1,0 +1,5 @@
+[nginx]
+zone = lan
+protocol = tcp
+port = 80
+source = 192.168.68.0/24

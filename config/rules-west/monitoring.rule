@@ -1,0 +1,29 @@
+[monitoring-nrpe]
+zone = tunnels
+source = 192.168.100.50
+destination = 192.168.68.5
+protocol = tcp
+port = 5666
+
+[monitoring-snmp-udp]
+zone = tunnels
+source = 192.168.100.50
+destination = 192.168.68.5
+protocol = udp
+port = 161
+log = yes
+
+[monitoring-snmp-tcp]
+zone = tunnels
+source = 192.168.100.50
+destination = 192.168.68.5
+protocol = tcp
+port = 161
+
+[monitoring-munin]
+zone = tunnels
+source = 192.168.100.50
+destination = 192.168.68.5
+protocol = tcp
+port = 4949
+action = accept
