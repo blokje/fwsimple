@@ -90,6 +90,7 @@ class Firewall():
     def apply(self):
         """ Apply firewall config """
         for runcmd in self.__execute_iptables():
+            print(runcmd)
             if subprocess.call(runcmd) != 0:
                 print(runcmd)
 
@@ -120,7 +121,10 @@ class Firewall():
 
         for expression in self.get_specific_zone_expressions():
             for creator in expression.args_iptables():
-                yield ['iptables'] + creator
+                if expression.proto & constants.PROTO_IPV4:
+                    yield ['iptables'] + creator
+                if expression.proto & constants.PROTO_IPV6:
+                    yield ['ip6tables'] + creator
 
         for expression in self.get_nonspecific_zone_expressions():
             for creator in expression.args_iptables():
@@ -188,10 +192,18 @@ class FirewallZone(FirewallExecution):
             # Check if expression is specific (specific zones preceed generic
             # zones)
             if ':' in self.expression:
-                (self.interface, self.source) = self.expression.split(':')
+                (self.interface, self.source) = self.expression.split(':', 1)
+                self.source = ipaddress.ip_network(self.source)
             else:
                 self.interface = self.expression
                 self.source = None
+
+            self.proto = constants.PROTO_IPV4 + constants.PROTO_IPV6
+            if self.source:
+                if self.source.version == 4:
+                    self.proto -= constants.PROTO_IPV6
+                elif self.source.version == 6:
+                    self.proto -= constants.PROTO_IPV4
 
         def __eq__(self, other):
             return ((self.interface == other.interface) and (self.source == other.source))
@@ -204,11 +216,11 @@ class FirewallZone(FirewallExecution):
                 if direction == 'out':
                     cmd += ['-o', self.interface]
                     if self.source:
-                        cmd += ['-d', self.source]
+                        cmd += ['-d', str(self.source)]
                 else:
                     cmd += ['-i', self.interface]
                     if self.source:
-                        cmd += ['-s', self.source]
+                        cmd += ['-s', str(self.source)]
 
                 cmd += ['-j', '%s_%s' %
                         (constants.DIRECTION[direction], self._zone.name)]
