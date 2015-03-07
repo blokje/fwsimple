@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function, absolute_import
+
 from . import constants
 import glob
 import pprint
@@ -72,7 +73,7 @@ class Firewall(object):
                     yield expression
 
     def load_rulesets(self):
-        for ruleset in glob.glob(self.ruleset_location + '/*.rule'):
+        for ruleset in sorted(glob.glob(self.ruleset_location + '/*.rule')):
             self.parse_ruleset(ruleset)
 
     def parse_ruleset(self, ruleset_file):
@@ -413,6 +414,8 @@ def main():
     """ Entry point """
     fwsimple = Firewall('/etc/fwsimple/fwsimple.cfg')
     fwsimple.apply()
+
+
 __version__ = '0.1'
 __author__ = 'Rick Voormolen'
 __email__ = 'rick@voormolen.org'
