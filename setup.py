@@ -20,7 +20,7 @@ config = {
     'data_files': [ 
         ( '/etc/fwsimple', [ 'config/fwsimple.cfg' ] ),
         ( '/etc/fwsimple/rules',  ['config/rules/README.md' ] ),
-    ]
+    ],
     'entry_points': {
         'console_scripts': [
             'fwsimple = fwsimple:main',

@@ -380,6 +380,10 @@ class FirewallRuleFilter(FirewallRule):
 class FirewallRuleNAT(FirewallRule):
     pass
 
+def main():
+    """ Entry point """
+    Firewall('/etc/fwsimple/fwsimple.cfg')
+    fw.apply()
 __version__ = '0.1'
 __author__  = 'Rick Voormolen'
 __email__ = 'rick@voormolen.org'
