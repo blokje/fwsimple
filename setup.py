@@ -16,7 +16,16 @@ config = {
     'version': "%s-%s" % (fwsimple.__version__, git_version),
     'install_requires': ['ipaddress'],
     'packages': find_packages(),
-    'name': 'fwsimple'
+    'name': 'fwsimple',
+    'data_files': [ 
+        ( '/etc/fwsimple', [ 'config/fwsimple.cfg' ] ),
+        ( '/etc/fwsimple/rules',  ['config/rules/README.md' ] ),
+    ]
+    'entry_points': {
+        'console_scripts': [
+            'fwsimple = fwsimple:main',
+        ]
+    }
 }
 
 setup(**config)
