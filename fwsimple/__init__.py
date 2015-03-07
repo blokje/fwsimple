@@ -9,14 +9,18 @@ import ipaddress
 import subprocess
 
 
-class Firewall():
+class Firewall(object):
 
     """ The Firewall itself """
 
     def __init__(self, configfile):
         """ Load the configuration """
+        # Initialize attributes
         self.rules = []
         self.zones = []
+        self.ruleset_location = None
+        self.config = None
+        self.exec_type = None
 
         self.load_config(configfile)
         self.load_zones()
@@ -81,10 +85,9 @@ class Firewall():
             name = '%s::%s' % (os.path.basename(ruleset_file), rule)
             try:
                 if ruletype == 'filter':
-                    fr = FirewallRuleFilter(name=name, firewall=self,
-                                            **dict(ruleset.items(rule)))
-                    self.rules.append(fr)
-            except TypeError as e:
+                    firewall_rule = FirewallRuleFilter(name=name, firewall=self, **dict(ruleset.items(rule)))
+                    self.rules.append(firewall_rule)
+            except TypeError:
                 print("Error in %s" % name)
 
     def apply(self):
@@ -157,7 +160,7 @@ class Firewall():
             yield ['ip6tables'] + cmd
 
 
-class FirewallExecution():
+class FirewallExecution(object):
 
     def __str__(self):
         """ Return formatted string based on execution type """
@@ -173,7 +176,7 @@ class FirewallExecution():
                 return " ".join([str(argument) for argument in expression])
 
     def args_iptables(self):
-        raise NotImplemented('This function is not (yet) implemented')
+        raise NotImplementedError('This function is not (yet) implemented')
 
 
 class FirewallZone(FirewallExecution):
@@ -206,7 +209,7 @@ class FirewallZone(FirewallExecution):
                     self.proto -= constants.PROTO_IPV4
 
         def __eq__(self, other):
-            return ((self.interface == other.interface) and (self.source == other.source))
+            return (self.interface == other.interface) and (self.source == other.source)
 
         def args_iptables(self):
             creators = []
@@ -266,7 +269,7 @@ class FirewallZone(FirewallExecution):
         return creators
 
 
-class FirewallRule(FirewallExecution):
+class FirewallRule(object):
 
     def is_filter(self):
         return isinstance(self, FirewallRuleFilter)
@@ -281,10 +284,9 @@ class FirewallRule(FirewallExecution):
         return self.action == 'discard'
 
 
-class FirewallRuleFilter(FirewallRule):
+class FirewallRuleFilter(FirewallRule, FirewallExecution):
 
-    def __init__(
-        self, name, firewall, zone, source=None, destination=None, port=None,
+    def __init__(self, name, firewall, zone, source=None, destination=None, port=None,
                  protocol='tcp', action='accept', log=False, direction='in', **options):
         """ Define firewall definition """
 
@@ -399,8 +401,7 @@ class FirewallRuleFilter(FirewallRule):
 
     def __repr__(self):
         myvars = vars(self)
-        myrepr = ", ".join(["%s=%s" % (var, myvars[var])
-                           for var in myvars if not var.startswith('_') and myvars[var] is not None])
+        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
         return '<FirewallRuleFilter(%s)>' % myrepr
 
 
@@ -410,8 +411,8 @@ class FirewallRuleNAT(FirewallRule):
 
 def main():
     """ Entry point """
-    fw = Firewall('/etc/fwsimple/fwsimple.cfg')
-    fw.apply()
+    fwsimple = Firewall('/etc/fwsimple/fwsimple.cfg')
+    fwsimple.apply()
 __version__ = '0.1'
 __author__ = 'Rick Voormolen'
 __email__ = 'rick@voormolen.org'
