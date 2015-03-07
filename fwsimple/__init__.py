@@ -382,7 +382,7 @@ class FirewallRuleNAT(FirewallRule):
 
 def main():
     """ Entry point """
-    Firewall('/etc/fwsimple/fwsimple.cfg')
+    fw = Firewall('/etc/fwsimple/fwsimple.cfg')
     fw.apply()
 __version__ = '0.1'
 __author__  = 'Rick Voormolen'
