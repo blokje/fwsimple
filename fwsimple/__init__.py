@@ -145,9 +145,9 @@ class Firewall():
 
         # Add default policies
         for direction in constants.DIRECTION:
-            direction = constants.IPTABLES_DIRECTION[direction]
             action = constants.IPTABLES_ACTIONS[self.__get_default_policy(direction)]
-            cmd = [ '-A', direction, '-j',  action ]
+            chain = constants.IPTABLES_DIRECTION[direction]
+            cmd = [ '-A', chain, '-j',  action ]
             yield [ 'iptables' ] + cmd
             yield [ 'ip6tables' ] + cmd
 
