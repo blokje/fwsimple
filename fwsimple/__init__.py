@@ -93,6 +93,9 @@ class Firewall():
             if subprocess.call(runcmd) != 0:
                 print(runcmd)
 
+    def __get_default_policy(self, direction):
+        return self.config.get('policy', direction)
+
     def __execute_iptables(self):
         """ Return all commands to be executed for IPtables """
 
@@ -140,6 +143,15 @@ class Firewall():
                 yield [ 'iptables' ] + creator
                 yield [ 'ip6tables' ] + creator
 
+        # Add default policies
+        for direction in constants.DIRECTION:
+            direction = constants.[direction]
+            action = constants.IPTABLES_ACTIONS[self.__get_default_policy(direction)]
+            cmd = [ '-A', direction, '-j',  action ]
+            yield [ 'iptables' ] + cmd
+            yield [ 'ip6tables' ] + cmd
+
+        
 class FirewallExecution():
 
     def __str__(self):
@@ -186,7 +198,7 @@ class FirewallZone(FirewallExecution):
         def args_iptables(self):
             creators = []
             for direction in constants.DIRECTION:
-                cmd = [ '-A', constants.DIRECTION_MAP_IPTABLES[direction] ]
+                cmd = [ '-A', constants.IPTABLES_DIRECTION[direction] ]
                 
                 if direction == 'out':
                     cmd += [ '-o', self.interface ]
@@ -255,7 +267,6 @@ class FirewallRule(FirewallExecution):
 
 
 class FirewallRuleFilter(FirewallRule):
-    ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
 
     def __init__(
         self, name, firewall, zone, source=None, destination=None, port=None,
@@ -311,7 +322,7 @@ class FirewallRuleFilter(FirewallRule):
         self.protocol = protocol
 
         # Public : Actions
-        if action in self.ACTIONS:
+        if action in constants.IPTABLES_ACTIONS:
             self.action = action
         else:
             raise Exception(
@@ -365,7 +376,7 @@ class FirewallRuleFilter(FirewallRule):
             log = iptables + \
                 ['-j', 'LOG', '--log-prefix', '%s ' % self.name[0:28]]
 
-        iptables += ['-j', self.ACTIONS[self.action]]
+        iptables += ['-j', constants.IPTABLES_ACTIONS[self.action]]
         if self.log:
             return [log, iptables]
         return [iptables]

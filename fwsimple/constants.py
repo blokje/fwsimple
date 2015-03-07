@@ -31,7 +31,6 @@ BASIC_IP6TABLES_INIT = [
 ] 
 
 DIRECTION = {'in': 'IN', 'out': 'OUT', 'forward': 'FWD'}
-DIRECTION_MAP_IPTABLES = { 'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD' }
 
 EXEC_IPTABLES = 1
 EXEC_PF = 2
@@ -39,6 +38,9 @@ EXEC_MAP = {
     'iptables': EXEC_IPTABLES,
     'pf': EXEC_PF,
 }
+
+IPTABLES_ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
+IPTABLES_DIRECTION = { 'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD' }
 
 PROTO_IPV4 = 1
 PROTO_IPV6 = 2
