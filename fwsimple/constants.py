@@ -39,8 +39,11 @@ EXEC_MAP = {
     'pf': EXEC_PF,
 }
 
+GLOBAL_ZONE_NAME = 'global'
+
 IPTABLES_ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
 IPTABLES_DIRECTION = {'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD'}
 
 PROTO_IPV4 = 1
 PROTO_IPV6 = 2
+
