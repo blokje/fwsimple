@@ -94,7 +94,6 @@ class Firewall(object):
     def apply(self):
         """ Apply firewall config """
         for runcmd in self.__execute_iptables():
-            print(runcmd)
             if subprocess.call(runcmd) != 0:
                 print(runcmd)
 
