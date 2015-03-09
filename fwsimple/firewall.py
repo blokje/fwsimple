@@ -27,6 +27,7 @@ class Firewall(object):
         self.load_rulesets()
 
     def load_config(self, configfile):
+        """ Read the config file and load appropriate firewall engine """
         self.config = ConfigParser.SafeConfigParser()
         self.config.read(configfile)
 
@@ -39,7 +40,7 @@ class Firewall(object):
             raise Exception('Unsupported engine!')
 
     def load_zones(self):
-        """ Load zones and add magic zone global' """
+        """ Load zones and add magic zone global """
         zone_global = Zone(self, constants.GLOBAL_ZONE_NAME, None)
         zone_global.add_expression(None)
         self.zones.append(zone_global)
@@ -48,40 +49,24 @@ class Firewall(object):
             self.zones.append(Zone(self, *zone))
 
     def has_zone(self, zone_name):
+        """ Check if zone already exists """
         for zone in self.zones:
             if zone.name == zone_name:
                 return True
         return False
 
     def has_zone_expression(self, new_expression):
+        """ Check if zone expression already exists """
         for zone in self.zones:
             for expression in zone.expressions:
                 if new_expression == expression:
                     return True
         return False
 
-    def get_specific_zone_expressions(self):
-        for expression in self.get_zone_expressions(True):
-            yield expression
-
-    def get_nonspecific_zone_expressions(self):
-        for expression in self.get_zone_expressions(False):
-            yield expression
-
-    def get_all_zone_expressions(self):
+    def get_zone_expressions(self):
         for zone in self.zones:
             for expression in zone.expressions:
                 yield expression
-
-    def get_zone_expressions(self, specific=None):
-        for zone in self.zones:
-            if zone.name == constants.GLOBAL_ZONE_NAME:
-                continue
-            for expression in zone.expressions:
-                if specific is None:
-                    yield expression
-                elif expression.specific is specific:
-                    yield expression
 
     def get_zone(self, name):
         for zone in self.zones:
