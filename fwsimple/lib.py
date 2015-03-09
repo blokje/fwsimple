@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, print_function, absolute_import
 
 from fwsimple import constants
+import importlib
 
 class FirewallExecution(object):
 
@@ -33,5 +34,11 @@ class FirewallRule(object):
 
     def is_discard(self):
         return self.action == 'discard'
+
+def _load_class(classname):
+    """ Load a class """
+    (mod, cls) = classname.rsplit(".", 1)
+    mod = importlib.import_module(mod)
+    return getattr(mod, cls)
 
 

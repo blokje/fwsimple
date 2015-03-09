@@ -31,23 +31,6 @@ class Zone(lib.FirewallExecution):
         else:
             self.expressions.append(subexpression)
 
-    def args_iptables(self):
-        creators = []
-        for direction in constants.DIRECTION:
-            cmd = ['-N', "%s_%s" %
-                   (constants.DIRECTION[direction], self.name)]
-            creators.append(cmd)
-        return creators
-
-    def args_iptables_return(self):
-        creators = []
-        for direction in constants.DIRECTION:
-            cmd = ['-A', "%s_%s" %
-                   (constants.DIRECTION[direction], self.name)]
-            cmd += ['-j', 'RETURN']
-            creators.append(cmd)
-        return creators
-
     def __repr__(self):
         """ Return representation of object """
         myvars = vars(self)
@@ -82,6 +65,7 @@ class ZoneExpression(lib.FirewallExecution):
 
     @property
     def specific(self):
+        """ Property determing if the expression is specific or generic """
         if self.source:
             return True
         return False
