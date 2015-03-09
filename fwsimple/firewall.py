@@ -6,7 +6,6 @@ from fwsimple.zone import Zone
 
 import ConfigParser
 import glob
-import subprocess
 
 class Firewall(object):
 
