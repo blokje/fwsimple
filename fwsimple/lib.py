@@ -7,7 +7,7 @@ class FirewallExecution(object):
     def __str__(self):
         """ Return formatted string based on execution type """
         args = None
-
+        return repr(self) 
         if self._firewall.exec_type == constants.EXEC_IPTABLES:
             args = self.args_iptables()
 

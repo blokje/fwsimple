@@ -1,6 +1,7 @@
 
 from __future__ import unicode_literals, print_function, absolute_import
 from fwsimple import constants, zone
+import fwsimple.engines
 from fwsimple.zone import Zone
 
 import ConfigParser
@@ -32,8 +33,8 @@ class Firewall(object):
         # Verify configuration
         self.ruleset_location = self.config.get('fwsimple', 'rulesets')
         try:
-            self.exec_type = constants.EXEC_MAP[
-                self.config.get('fwsimple', 'engine')]
+            self.exec_type = constants.EXEC_MAP[self.config.get('fwsimple', 'engine')]
+            self.engine = fwsimple.engines.load_engine(self.config.get('fwsimple','engine'))(self)
         except KeyError:
             raise Exception('Unsupported engine!')
 
@@ -66,6 +67,11 @@ class Firewall(object):
     def get_nonspecific_zone_expressions(self):
         for expression in self.get_zone_expressions(False):
             yield expression
+
+    def get_all_zone_expressions(self):
+        for zone in self.zones:
+            for expression in zone.expressions:
+                yield expression
 
     def get_zone_expressions(self, specific=None):
         for zone in self.zones:
@@ -109,12 +115,17 @@ class Firewall(object):
 
     def apply(self):
         """ Apply firewall config """
-        for runcmd in self.__execute_iptables():
+        #for runcmd in self.__execute_iptables():
+        for runcmd in self.engine.apply():
             if not self._dry_run:
                 if subprocess.call(runcmd) != 0:
                     print(runcmd)
             else:
                 print(subprocess.list2cmdline(runcmd))
+
+    def commit(self):
+        """ Request engine to commit configuration """
+        return self.engine.commit()
 
     def __get_default_policy(self, direction):
         return self.config.get('policy', direction)
@@ -122,7 +133,7 @@ class Firewall(object):
     def __execute_iptables(self):
         """ Return all commands to be executed for IPtables """
 
-        # Default configurations
+#        # Default configurations
         for _ in constants.BASIC_IPTABLES_INIT:
             yield ['iptables'] + _
             yield ['ip6tables'] + _

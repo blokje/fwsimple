@@ -48,6 +48,12 @@ class Zone(lib.FirewallExecution):
             creators.append(cmd)
         return creators
 
+    def __repr__(self):
+        """ Return representation of object """
+        myvars = vars(self)
+        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
+        return '<Zone(%s)>' % myrepr
+
 class ZoneExpression(lib.FirewallExecution):
 
     """ A subexpression is a small part of the zone definition """
@@ -55,6 +61,7 @@ class ZoneExpression(lib.FirewallExecution):
     def __init__(self, firewall, zone, expression):
         self._firewall = firewall
         self._zone = zone
+        self.zone = zone
         self.expression = expression
 
         # Check if expression is specific (specific zones preceed generic
@@ -73,34 +80,55 @@ class ZoneExpression(lib.FirewallExecution):
             elif self.source.version == 6:
                 self.proto -= constants.PROTO_IPV4
 
-    def __eq__(self, other):
-        return (self.interface == other.interface) and (self.source == other.source)
-
-    def args_iptables(self):
-        creators = []
-        for direction in constants.DIRECTION:
-            cmd = ['-A', constants.IPTABLES_DIRECTION[direction]]
-            cmd += [ '-m', 'comment', '--comment', 'Zone %s' % self._zone.name ]
-
-            if self.interface:
-                if direction == 'out':
-                    cmd += ['-o', self.interface]
-                    if self.source:
-                        cmd += ['-d', str(self.source)]
-                else:
-                    cmd += ['-i', self.interface]
-                    if self.source:
-                        cmd += ['-s', str(self.source)]
-
-            cmd += ['-j', '%s_%s' %
-                    (constants.DIRECTION[direction], self._zone.name)]
-
-            creators.append(cmd)
-        return creators
-
     @property
     def specific(self):
         if self.source:
             return True
         return False
 
+    def __repr__(self):
+        """ Return representation of object """
+        myvars = vars(self)
+        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
+        return '<ZoneExpression(%s)>' % myrepr
+
+    # Sorting
+    def __eq__(self, other):
+        return (self.interface == other.interface) and (self.source == other.source)
+
+    def __ne__(self, other):
+        return (self.interface != other.interface) or (self.source != other.source)
+
+    def __lt__(self, other):
+        """ Check if I should be smaller than the other """
+        if self._zone.name == constants.GLOBAL_ZONE_NAME:
+            return True
+        elif other._zone.name == constants.GLOBAL_ZONE_NAME:
+            return False
+        elif self.source and other.source:
+            ### Check if the other has more addresses than I do
+            return self.source.num_addresses < other.source.num_addresses
+        elif self.source and not other.source:
+            ### Other has no definition, so we are smaller!
+            return True
+        return False
+
+    def __le__(self, other):
+        """ Check if lesser than OR equal """
+        return self.__eq__(other) or self.__lt__(other)
+
+    def __gt__(self, other):
+        """ Check if I should be greater than the other """
+        if self._zone.name == constants.GLOBAL_ZONE_NAME:
+            return False
+        if other._zone.name == constants.GLOBAL_ZONE_NAME:
+            return True
+        elif self.source and other.source:
+            return self.source.num_addresses > other.source.num_addresses
+        elif self.source and not other.source:
+            return False
+        return True
+
+    def __ge__(self, other):
+        """ Check if greater than OR equal """
+        return self.__eq__(other) or self.__gt__(other)
