@@ -4,6 +4,8 @@ from fwsimple import lib, constants
 
 import ipaddress
 
+# Bugs:
+# 1. Detection does not work if duplicate expression is made in same zone
 class Zone(lib.FirewallExecution):
 
     """ A firewall zone will be used for initial packet filtering """
@@ -27,7 +29,7 @@ class Zone(lib.FirewallExecution):
     def add_expression(self, expression):
         subexpression = ZoneExpression(self._firewall, self, expression)
         if self._firewall.has_zone_expression(subexpression):
-            raise Warning('Duplicate zone definition detected (zone=%s, expression=%s)' % (self.name, expr))
+            raise Warning('Duplicate zone definition detected (zone=%s, expression=%s)' % (self.name, subexpression))
         else:
             self.expressions.append(subexpression)
 
@@ -44,7 +46,6 @@ class ZoneExpression(lib.FirewallExecution):
     def __init__(self, firewall, zone, expression):
         self._firewall = firewall
         self._zone = zone
-        self.zone = zone
         self.expression = expression
 
         # Check if expression is specific (specific zones preceed generic
@@ -78,6 +79,7 @@ class ZoneExpression(lib.FirewallExecution):
 
     # Sorting
     def __eq__(self, other):
+        print(self,other)
         return (self.interface == other.interface) and (self.source == other.source)
 
     def __ne__(self, other):
