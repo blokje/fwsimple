@@ -115,71 +115,72 @@ class Firewall(object):
     def __get_default_policy(self, direction):
         return self.config.get('policy', direction)
 
-    def __execute_iptables(self):
-        """ Return all commands to be executed for IPtables """
-
-#        # Default configurations
-        for _ in constants.BASIC_IPTABLES_INIT:
-            yield ['iptables'] + _
-            yield ['ip6tables'] + _
-        for _ in constants.BASIC_IP4TABLES_INIT:
-            yield ['iptables'] + _
-        for _ in constants.BASIC_IP6TABLES_INIT:
-            yield ['ip6tables'] + _
-
-        # Zones will be created in IPv4 AND IPv6
-        # 1. Create zones
-        # 2. Add specific expressions
-        # 3. Add generic expressions
-
-        for zone in self.zones:
-            for creator in zone.args_iptables():
-                yield ['iptables'] + creator
-                yield ['ip6tables'] + creator
-
-        for expression in  self.get_zone(constants.GLOBAL_ZONE_NAME).expressions:
-            for creator in expression.args_iptables():
-                if expression.proto & constants.PROTO_IPV4:
-                    yield ['iptables'] + creator
-                if expression.proto & constants.PROTO_IPV6:
-                    yield ['ip6tables'] + creator
-
-               
-
-        for expression in self.get_specific_zone_expressions():
-            for creator in expression.args_iptables():
-                if expression.proto & constants.PROTO_IPV4:
-                    yield ['iptables'] + creator
-                if expression.proto & constants.PROTO_IPV6:
-                    yield ['ip6tables'] + creator
-
-        for expression in self.get_nonspecific_zone_expressions():
-            for creator in expression.args_iptables():
-                yield ['iptables'] + creator
-
-        # Insert rules
-        for action in ['discard', 'reject', 'accept']:
-            for rule in [rule for rule in self.rules if rule.action == action]:
-                args = rule.args_iptables()
-                if rule.proto & constants.PROTO_IPV4:
-                    for _ in args:
-                        yield ['iptables'] + _
-                if rule.proto & constants.PROTO_IPV6:
-                    for _ in args:
-                        yield ['ip6tables'] + _
-
-        # Closeup all zones
-        for zone in self.zones:
-            for creator in zone.args_iptables_return():
-                yield ['iptables'] + creator
-                yield ['ip6tables'] + creator
-
-        # Add default policies
-        for direction in constants.DIRECTION:
-            action = constants.IPTABLES_ACTIONS[
-                self.__get_default_policy(direction)]
-            chain = constants.IPTABLES_DIRECTION[direction]
-            cmd = ['-A', chain, '-j', action]
-            yield ['iptables'] + cmd
-            yield ['ip6tables'] + cmd
-
+## TODO: Remove this function
+#    def __execute_iptables(self):
+#        """ Return all commands to be executed for IPtables """
+#
+##        # Default configurations
+#        for _ in constants.BASIC_IPTABLES_INIT:
+#            yield ['iptables'] + _
+#            yield ['ip6tables'] + _
+#        for _ in constants.BASIC_IP4TABLES_INIT:
+#            yield ['iptables'] + _
+#        for _ in constants.BASIC_IP6TABLES_INIT:
+#            yield ['ip6tables'] + _
+#
+#        # Zones will be created in IPv4 AND IPv6
+#        # 1. Create zones
+#        # 2. Add specific expressions
+#        # 3. Add generic expressions
+#
+#        for zone in self.zones:
+#            for creator in zone.args_iptables():
+#                yield ['iptables'] + creator
+#                yield ['ip6tables'] + creator
+#
+#        for expression in  self.get_zone(constants.GLOBAL_ZONE_NAME).expressions:
+#            for creator in expression.args_iptables():
+#                if expression.proto & constants.PROTO_IPV4:
+#                    yield ['iptables'] + creator
+#                if expression.proto & constants.PROTO_IPV6:
+#                    yield ['ip6tables'] + creator
+#
+#               
+#
+#        for expression in self.get_specific_zone_expressions():
+#            for creator in expression.args_iptables():
+#                if expression.proto & constants.PROTO_IPV4:
+#                    yield ['iptables'] + creator
+#                if expression.proto & constants.PROTO_IPV6:
+#                    yield ['ip6tables'] + creator
+#
+#        for expression in self.get_nonspecific_zone_expressions():
+#            for creator in expression.args_iptables():
+#                yield ['iptables'] + creator
+#
+#        # Insert rules
+#        for action in ['discard', 'reject', 'accept']:
+#            for rule in [rule for rule in self.rules if rule.action == action]:
+#                args = rule.args_iptables()
+#                if rule.proto & constants.PROTO_IPV4:
+#                    for _ in args:
+#                        yield ['iptables'] + _
+#                if rule.proto & constants.PROTO_IPV6:
+#                    for _ in args:
+#                        yield ['ip6tables'] + _
+#
+#        # Closeup all zones
+#        for zone in self.zones:
+#            for creator in zone.args_iptables_return():
+#                yield ['iptables'] + creator
+#                yield ['ip6tables'] + creator
+#
+#        # Add default policies
+#        for direction in constants.DIRECTION:
+#            action = constants.IPTABLES_ACTIONS[
+#                self.__get_default_policy(direction)]
+#            chain = constants.IPTABLES_DIRECTION[direction]
+#            cmd = ['-A', chain, '-j', action]
+#            yield ['iptables'] + cmd
+#            yield ['ip6tables'] + cmd
+#
