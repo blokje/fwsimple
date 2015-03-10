@@ -24,41 +24,10 @@ class Filter(FirewallRule, FirewallExecution):
         else:
             raise Warning('Zone %s is not defined! (%s)' % (zone, self.name))
 
-        if direction in constants.DIRECTION:
-            self.direction = direction
-        else:
-            raise Exception(
-                "Direction '%s' is not understood! (%s)" %
-                (direction, self.name))
-
-        # Public : Addresses
-        if source:
-            self.source = ipaddress.ip_network(source)
-        else:
-            self.source = None
-        if destination:
-            self.destination = ipaddress.ip_network(destination)
-        else:
-            self.destination = None
-
-        # Public : Protocol/ports
-        if not port:
-            self.port = None
-        elif ',' in port or '-' in port:
-            self.multiport = True
-            self.port = []
-            ports = port.split(',')
-
-            for port in ports:
-                if '-' in port:
-                    (start, end) = port.split('-')
-                    self.port.append('%d:%d' % (int(start), int(end)))
-                else:
-                    self.port.append('%d' % int(port))
-            self.port = ','.join(self.port)
-        else:
-            self.multiport = False
-            self.port = int(port)
+        self.set_direction(direction)
+        self.set_source(source)
+        self.set_destination(destination)
+        self.set_port(port)
 
         self.protocol = protocol
 
@@ -72,58 +41,69 @@ class Filter(FirewallRule, FirewallExecution):
 
         self.log = bool(log)
 
-        # Determine if source and destenation are both same protocol
+    def set_direction(self, direction):
+        """ Set rule direction """
+        if direction in constants.DIRECTION:
+            self.direction = direction
+        else:
+            raise Exception(
+                "Direction '%s' is not understood! (%s)" %
+                (direction, self.name))
+
+    def set_source(self, source = None):
+        """ Set source address(es) """
+        if source:
+            self.source = [ ipaddress.ip_network(address) for address in source.split(",") ]
+        else:
+            self.source = None
+
+    def set_destination(self, destination = None):
+        if destination:
+            self.destination = [ ipaddress.ip_network(address) for address in destination.split(",") ]
+        else:
+            self.destination = None
+
+    def get_source_destinations(self):
         if self.source and self.destination:
-            if self.source.version != self.destination.version:
-                raise Exception(
-                    'You cannot mix IPv4 and IPv6 addresses [source=%s, destination=%s] (%s)' %
-                    (self.source, self.destination, self.name))
+            for source in self.source:
+                for destination in self.destination:
+                    if source.version == destination.version:
+                        yield(source, destination)
 
-        # Determine protocol level
-        self.proto = constants.PROTO_IPV4 + constants.PROTO_IPV6
-        if self.source:
-            if self.source.version == 4:
-                self.proto -= constants.PROTO_IPV6
-            elif self.source.version == 6:
-                self.proto -= constants.PROTO_IPV4
+        elif self.source:
+            for source in self.source:
+                yield (source, None)
+
         elif self.destination:
-            if self.destination.version == 4:
-                self.proto -= constants.PROTO_IPV6
-            elif self.destination.version == 6:
-                self.proto -= constants.PROTO_IPV4
+            for destination in self.destination:
+                yield (None, destination)
 
-    def args_iptables(self):
-        iptables = ['-A', '%s_%s' %
-                    (constants.DIRECTION[self.direction], self.zone)]
-        iptables += ['-m', 'conntrack', '--ctstate', 'NEW']
-        iptables += ['-m', 'comment', '--comment', self.name]
+        else:
+            yield(None, None)
 
-        if self.source:
-            iptables += ['-s', str(self.source)]
+    def set_port(self, port = None):
+        # Public : Protocol/ports
+        if not port:
+            self.port = None
 
-        if self.destination:
-            iptables += ['-d', str(self.destination)]
+        self.port = [ port for port in port.split(',') ]
 
-        if self.protocol:
-            iptables += ['-p', self.protocol]
-
-            if self.port:
-                if self.multiport:
-                    iptables += ['-m', 'multiport']
-                iptables += ['--dport', str(self.port)]
-
-        if self.log:
-            log = iptables + \
-                ['-j', 'LOG', '--log-prefix', '%s ' % self.name[0:28]]
-
-        iptables += ['-j', constants.IPTABLES_ACTIONS[self.action]]
-        if self.log:
-            return [log, iptables]
-        return [iptables]
+    @property
+    def multiport(self):
+        if self.port:
+            if len(self.port) == 1:
+                if '-' in self.port[0]:
+                    return True
+                else:
+                    return False
+            else:
+                return True
+        else:
+            return False
 
     def __repr__(self):
         myvars = vars(self)
         myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
-        return '<FirewallRuleFilter(%s)>' % myrepr
+        return '<rules.filter.Filter(%s)>' % myrepr
 
 
