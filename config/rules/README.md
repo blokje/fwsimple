@@ -72,11 +72,13 @@ Log traffic on this interface
 
 ## Example
 The following example will allow traffic within the zone global from 192.168.0.10 and fc00:192:168:0::10 to 192.160.0.50 and fc00:192:168:0::50 for tcp port 22 and 22022
-  [ssh]
-  zone = global
-  from = 192.168.0.10,fc00:192:168:0::10
-  to = 192.168.0.50,fc00:192:168:0::50
-  port = 22,22022
-  protocol = tcp
-  action = accept
-  log = false
+```dosini
+[ssh]
+zone = global
+from = 192.168.0.10,fc00:192:168:0::10
+to = 192.168.0.50,fc00:192:168:0::50
+port = 22,22022
+protocol = tcp
+action = accept
+log = false
+```
