@@ -1,5 +1,5 @@
 Rules
-#####
+=====
 
 Rules are defined in simple ini files with a simple syntax
 
