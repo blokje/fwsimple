@@ -79,7 +79,6 @@ class ZoneExpression(lib.FirewallExecution):
 
     # Sorting
     def __eq__(self, other):
-        print(self,other)
         return (self.interface == other.interface) and (self.source == other.source)
 
     def __ne__(self, other):
