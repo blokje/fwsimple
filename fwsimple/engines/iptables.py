@@ -84,12 +84,16 @@ class Engine(BaseEngine):
             if source:
                 cmd += [ '-s', str(source) ]
                 if source.version == 4:
-                    proto -= constants.PROTO_IPV6
+                    proto = proto & constants.PROTO_IPV4
                 else:
-                    proto -= constants.PROTO_IPV4
+                    proto = proto & constants.PROTO_IPV6
 
             if destination:
                 cmd += [ '-d', str(destination) ]
+                if destination.version == 4:
+                    proto = proto & constants.PROTO_IPV4
+                else:
+                    proto = proto & constants.PROTO_IPV6
 
             if rule.log:
                 logcmd = cmd + ['-j', 'LOG', '--log-prefix', '%s ' % rule.name[0:28]]
