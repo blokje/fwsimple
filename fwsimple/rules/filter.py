@@ -58,12 +58,14 @@ class Filter(FirewallRule, FirewallExecution):
             self.source = None
 
     def set_destination(self, destination = None):
+        """ Set destination address(es) """
         if destination:
             self.destination = [ ipaddress.ip_network(address) for address in destination.split(",") ]
         else:
             self.destination = None
 
     def get_source_destinations(self):
+        """ Yields all possible source/destination combinations """
         if self.source and self.destination:
             for source in self.source:
                 for destination in self.destination:
@@ -85,8 +87,8 @@ class Filter(FirewallRule, FirewallExecution):
         # Public : Protocol/ports
         if not port:
             self.port = None
-
-        self.port = [ port for port in port.split(',') ]
+        else:
+            self.port = [ port for port in port.split(',') ]
 
     @property
     def multiport(self):

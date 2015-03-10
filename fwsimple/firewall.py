@@ -111,7 +111,7 @@ class Firewall(object):
         """ Request engine to commit configuration """
         return self.engine.commit()
 
-    def __get_default_policy(self, direction):
+    def get_default_policy(self, direction):
         return self.config.get('policy', direction)
 
 ## TODO: Remove this function

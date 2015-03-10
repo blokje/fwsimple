@@ -53,6 +53,13 @@ class Engine(BaseEngine):
             for _cmd in self.__iptables(cmd, expression.proto):
                 yield _cmd
 
+    def zone_close(self, zone):
+        """ Finish up the zones in iptables and ip6tables """
+        for direction in constants.DIRECTION:
+            cmd = ['-A', "%s_%s" % (constants.DIRECTION[direction], zone.name)]
+            cmd += ['-j', 'RETURN']
+            for _cmd in self.__iptables(cmd):
+                yield _cmd
 
     #
     # Rules
@@ -92,6 +99,14 @@ class Engine(BaseEngine):
             cmd += ['-j', constants.IPTABLES_ACTIONS[rule.action]] 
             for _cmd in self.__iptables(cmd, proto):
                 yield _cmd
+
+    def set_default_policy(self, direction, policy):
+        """ Set default firewall policy """
+        chain = constants.IPTABLES_DIRECTION[direction]
+        action = constants.IPTABLES_ACTIONS[policy]
+        cmd = ['-A', chain, '-j', action]
+        for _cmd in self.__iptables(cmd):
+            yield _cmd
 
     def __iptables(self, cmd, protoversion = constants.PROTO_IPV4 + constants.PROTO_IPV6):
         if protoversion & constants.PROTO_IPV4:

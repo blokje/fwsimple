@@ -4,6 +4,7 @@ import warnings
 import subprocess
 
 import fwsimple.lib
+import fwsimple.constants
 
 def load_engine(engine):
     """ Load an engine """
@@ -63,6 +64,17 @@ class BaseEngine(object):
                 for cmd in self.rule_create(rule):
                     yield cmd
 
+        # Close zones
+        for zone in self.firewall.zones:
+            for cmd in self.zone_close(zone):
+                yield cmd
+
+        # Set default policies
+        for direction in fwsimple.constants.DIRECTION:
+            policy = self.firewall.get_default_policy(direction)
+            for cmd in self.set_default_policy(direction, policy):
+                yield cmd
+
     def init(self):
         raise NotImplementedError("Function 'init' not implemented!")
 
@@ -74,3 +86,6 @@ class BaseEngine(object):
 
     def rule_create(self, rule):
         raise NotImplementedError("Function 'rule_create' not implemented!")
+
+    def set_default_policy(self, direction, policy):
+        raise NotImplementedError("Function 'set_default_policy' not implemented!")
