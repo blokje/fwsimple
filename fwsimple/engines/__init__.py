@@ -57,6 +57,12 @@ class BaseEngine(object):
             for cmd in self.zone_expression_create(expression):
                 yield cmd
 
+        # Insert rules
+        for action in ['discard', 'reject', 'accept']:
+            for rule in [rule for rule in self.firewall.rules if rule.action == action]:
+                for cmd in self.rule_create(rule):
+                    yield cmd
+
     def init(self):
         raise NotImplementedError("Function 'init' not implemented!")
 
@@ -65,3 +71,6 @@ class BaseEngine(object):
 
     def zone_expression_create(self, zone):
         raise NotImplementedError("Function 'zone_expression_create' not implemented!")
+
+    def rule_create(self, rule):
+        raise NotImplementedError("Function 'rule_create' not implemented!")
