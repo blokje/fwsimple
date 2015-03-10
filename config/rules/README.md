@@ -15,6 +15,7 @@ Firewall rules are defined by the type filter, please note that whenever
 the type is not defined it is implicitly defined as filter.
 
 Permitted parameters:
+  * zone (required)
   * source
   * destination
   * port
@@ -28,14 +29,17 @@ iptables, please not that the following order applies based on action:
   2 Reject
   3 Accept
 
+### zone
+The firewall zone to add this rule to.
+
 ### source
-The source address(es) where the traffic is coming from
+The source address(es) where the traffic is coming from. Multiple addresses can be seperated with a comma, both IPv4 and IPv6 addresses can be provided.
 
 ### destination
-The destination address(es) where the traffic is going to
+The destination address(es) for the traffic. Multiple addresses can be seperated with a comma, both IPv4 and IPv6 addresses can be provided.
 
 ### port
-The port the traffic is going to
+The port the traffic is going to. Multiple ports can be seperated with a comma, ranges can be specified with a '-'.
 
 ### protocol
 The protocol, default is TCP.
@@ -65,3 +69,14 @@ Drop all traffic and dont even reply
 
 ### log
 Log traffic on this interface
+
+## Example
+The following example will allow traffic within the zone global from 192.168.0.10 and fc00:192:168:0::10 to 192.160.0.50 and fc00:192:168:0::50 for tcp port 22 and 22022
+  [ssh]
+  zone = global
+  from = 192.168.0.10,fc00:192:168:0::10
+  to = 192.168.0.50,fc00:192:168:0::50
+  port = 22,22022
+  protocol = tcp
+  action = accept
+  log = false
