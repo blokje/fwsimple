@@ -25,9 +25,10 @@ Permitted parameters:
 
 Rules are loaded all at once in memory, compiled and afterwards inserted in 
 iptables, please not that the following order applies based on action:
-  1 Discard
-  2 Reject
-  3 Accept
+  1. Discard
+  2. Reject
+  3. Accept
+
 
 ### zone
 The firewall zone to add this rule to.
@@ -82,3 +83,27 @@ protocol = tcp
 action = accept
 log = false
 ```
+
+### Mixing of addresses
+Please not that is is possible to combine IPv4 and IPv6 addresses in both source and destination, fwsimple will take care of this and will add rules for all possible combinations. Please note that when you mix source and destination with different protocol IP versions no suitable rules can be generated and the rule would be ignored.
+
+#### Examples
+*Mixed wrong addresses*
+```dosini
+from = 192.168.0.10
+to = fc00:192:168:0::50
+```
+
+The following IP sets will be generated with the following ini
+```dosini
+from = 192.168.0.10,192.168.0.11,fc00::10
+to = 192.168.1.20,fc00::51,fc00::50
+```
+
+| From         | To           | Version |
+| ------------ | ------------ | ------- |
+| 192.168.0.10 | 192.168.1.20 | IPv4    |
+| 192.168.0.11 | 192.168.1.20 | IPv4    |
+| fc00::10     | fc00::51     | IPv6    |
+| fc00::10     | fc00::50     | IPv6    |
+
