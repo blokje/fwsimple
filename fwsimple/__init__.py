@@ -5,7 +5,7 @@ from .firewall import Firewall
 def main():
     """ Entry point """
     fwsimple = Firewall('/etc/fwsimple/fwsimple.cfg')
-    fwsimple.apply()
+    fwsimple.commit()
 
 __version__ = '0.1'
 __author__ = 'Rick Voormolen'
