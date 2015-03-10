@@ -1,11 +1,16 @@
+Rules
+####=
+
 Rules are defined in simple ini files with a simple syntax
 
-= Rule types =
+Rule types
+----------
 There are a few rule types:
   * filter
   * nat
 
-== Firewall rules ==
+Firewall rules
+--------------
 Firewall rules are defined by the type filter, please note that whenever
 the type is not defined it is implicitly defined as filter.
 
@@ -23,16 +28,16 @@ iptables, please not that the following order applies based on action:
   2 Reject
   3 Accept
 
-=== source ===
+### source
 The source address(es) where the traffic is coming from
 
-=== destination ===
+### destination
 The destination address(es) where the traffic is going to
 
-=== port ===
+### port
 The port the traffic is going to
 
-=== protocol ===
+### protocol
 The protocol, default is TCP.
 
 Allowed protocols are:
@@ -40,7 +45,7 @@ Allowed protocols are:
   * tcp
   * udp
 
-=== action ===
+### action
 The action to undertake with this rule, default action is accept
 
 Allowed actions are:
@@ -48,15 +53,15 @@ Allowed actions are:
   * reject
   * discard
 
-==== accept ====
+#### accept 
 The traffic will be accepted
 
-==== reject ====
+#### reject 
 The traffic will be rejected with an ICMP icmp-port-unreachable for a 
 maximum of 2 tries per second after which traffic will be dropped
 
-==== discard ====
+#### discard 
 Drop all traffic and dont even reply
 
-=== log ===
+### log
 Log traffic on this interface
