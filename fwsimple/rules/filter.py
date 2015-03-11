@@ -53,14 +53,14 @@ class Filter(FirewallRule, FirewallExecution):
     def set_source(self, source = None):
         """ Set source address(es) """
         if source:
-            self.source = [ ipaddress.ip_network(address) for address in source.split(",") ]
+            self.source = [ ipaddress.ip_network(address.strip()) for address in source.split(",") ]
         else:
             self.source = None
 
     def set_destination(self, destination = None):
         """ Set destination address(es) """
         if destination:
-            self.destination = [ ipaddress.ip_network(address) for address in destination.split(",") ]
+            self.destination = [ ipaddress.ip_network(address.strip()) for address in destination.split(",") ]
         else:
             self.destination = None
 
