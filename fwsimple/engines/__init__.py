@@ -2,6 +2,7 @@ from __future__ import unicode_literals, print_function, absolute_import
 
 import warnings
 import subprocess
+import os
 
 import fwsimple.lib
 import fwsimple.constants
@@ -22,15 +23,17 @@ class BaseEngine(object):
     def commit(self):
         for cmd in self.__commit_cmds():
             if not self.firewall._dry_run:
-                self.__commit_exec(cmd)
+                self.do_exec(cmd)
             else:
                 print(subprocess.list2cmdline(cmd))
 
-    def __commit_exec(self, cmd):
+    def do_exec(self, cmd, warn = True):
         """ Execute command """
         try:
-            if subprocess.call(cmd) != 0:
+            status = subprocess.call(cmd, stdout=open(os.devnull,'wb'))
+            if warn and status != 0:
                 warnings.warn("Execution failed: " + str(cmd))
+            return status
         except OSError:
             warnings.warn("Execution failed: " + str(cmd))
 

@@ -11,15 +11,30 @@ class Engine(BaseEngine):
     def init(self):
         """ Initialize the firewall, flush existing and add
             default rules defined in constants """
+
+        self._iptables = [ 'iptables' ]
+        self._ip6tables = [ 'ip6tables' ]
+
+
+        if self._iptables_supports_lockx:
+            self._iptables += [ '-w' ]
+            self._ip6tables += [ '-w' ]
+
         # Default configurations
         for _ in constants.BASIC_IPTABLES_INIT:
-            yield ['iptables'] + _
-            yield ['ip6tables'] + _
+            yield self._iptables + _
+            yield self._ip6tables + _
         for _ in constants.BASIC_IP4TABLES_INIT:
-            yield ['iptables'] + _
+            yield self._iptables + _
         for _ in constants.BASIC_IP6TABLES_INIT:
-            yield ['ip6tables'] + _
+            yield self._ip6tables + _
 
+    @property
+    def _iptables_supports_lockx(self):
+        if self.do_exec(['iptables', '-w', '-L', '-n'], False) == 0:
+            return True
+        else:
+            return False
 
     #
     # Zones
@@ -114,9 +129,9 @@ class Engine(BaseEngine):
 
     def __iptables(self, cmd, protoversion = constants.PROTO_IPV4 + constants.PROTO_IPV6):
         if protoversion & constants.PROTO_IPV4:
-            yield ['iptables'] + cmd
+            yield self._iptables + cmd
         if protoversion & constants.PROTO_IPV6:
-            yield ['ip6tables'] + cmd
+            yield self._ip6tables + cmd
 
     def _translate_port_range(self, ports):
         """ Translate port range to IPtables compatible format """
