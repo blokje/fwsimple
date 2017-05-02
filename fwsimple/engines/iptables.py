@@ -92,6 +92,13 @@ class Engine(BaseEngine):
                     policy += ['-m', 'multiport']
                 policy += [ '--dport', self._translate_port_range(rule.port) ]
 
+        if rule.country:
+            policy += [ '-m', 'geoip' ]
+            if rule.direction == "in":
+                policy += ['--src-cc', rule.country]
+            else:
+                policy += ['--dst-cc', rule.country]
+
         for (source, destination) in rule.get_source_destinations():
             cmd = list(policy)
             proto = constants.PROTO_IPV4 + constants.PROTO_IPV6

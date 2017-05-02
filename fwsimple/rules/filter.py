@@ -9,7 +9,7 @@ import ipaddress
 class Filter(FirewallRule, FirewallExecution):
 
     def __init__(self, name, firewall, zone, source=None, destination=None, port=None,
-                 protocol='tcp', action='accept', log=False, direction='in', **options):
+                 protocol='tcp', action='accept', log=False, direction='in', country=None, **options):
         """ Define firewall definition """
 
         # Private
@@ -28,6 +28,7 @@ class Filter(FirewallRule, FirewallExecution):
         self.set_source(source)
         self.set_destination(destination)
         self.set_port(port)
+        self.set_country(country)
 
         self.protocol = protocol
 
@@ -89,6 +90,12 @@ class Filter(FirewallRule, FirewallExecution):
             self.port = None
         else:
             self.port = [ port for port in port.split(',') ]
+
+    def set_country(self, country = None):
+        if not country:
+            self.country = None
+        else:
+            self.country = country
 
     @property
     def multiport(self):
