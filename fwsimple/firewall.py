@@ -109,7 +109,8 @@ class Firewall(object):
 
     def commit(self):
         """ Request engine to commit configuration """
-        return self.engine.commit()
+        self.engine.commit()
+
 
     def get_default_policy(self, direction):
         return self.config.get('policy', direction)
