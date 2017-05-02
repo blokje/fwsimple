@@ -50,6 +50,9 @@ class BaseEngine(object):
         """
 
         ## Initialize firewall configurations
+        if os.path.isfile("/etc/fwsimple/pre-fwsimple") and os.access("/etc/fwsimple/pre-fwsimple", os.X_OK):
+            yield [ "/etc/fwsimple/pre-fwsimple" ]
+
         for cmd in self.init():
             yield cmd
 
@@ -77,6 +80,10 @@ class BaseEngine(object):
             policy = self.firewall.get_default_policy(direction)
             for cmd in self.set_default_policy(direction, policy):
                 yield cmd
+
+        if os.path.isfile("/etc/fwsimple/post-fwsimple") and os.access("/etc/fwsimple/post-fwsimple", os.X_OK):
+            yield [ "/etc/fwsimple/post-fwsimple" ]
+
 
     def init(self):
         raise NotImplementedError("Function 'init' not implemented!")
