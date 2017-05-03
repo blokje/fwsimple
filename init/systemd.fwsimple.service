@@ -1,0 +1,15 @@
+# /etc/systemd/system/fwsimple.service
+[Unit]
+Description=Rick's Simple Firewall
+DefaultDependencies=no
+After=systemd-sysctl.service
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fwsimple
+ExecReload=/usr/local/bin/fwsimple
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
