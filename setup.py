@@ -13,7 +13,7 @@ config = {
     'description': 'fwsimple',
     'author': fwsimple.__author__,
     'author_email': fwsimple.__email__,
-    'version': "%s-%s" % (fwsimple.__version__, git_version),
+    'version': "%s.%s" % (fwsimple.__version__, git_version),
     'install_requires': ['ipaddress'],
     'packages': find_packages(),
     'name': 'fwsimple',
