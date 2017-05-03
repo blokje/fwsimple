@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup, find_packages
+#!/usr/bin/env python3
+from setuptools import setup
 
 import fwsimple
 import subprocess
 
-git_version = subprocess.check_output("git rev-list HEAD --count".split(" ")).strip()
+git_version = subprocess.check_output("git rev-list HEAD --count".split(" ")).strip().decode('ASCII')
 
 config = {
     'description': 'fwsimple',
@@ -15,7 +12,7 @@ config = {
     'author_email': fwsimple.__email__,
     'version': "%s.%s" % (fwsimple.__version__, git_version),
     'install_requires': ['ipaddress'],
-    'packages': find_packages(),
+    'packages': ['fwsimple', 'fwsimple.rules', 'fwsimple.engines'],
     'name': 'fwsimple',
     'data_files': [ 
         ( '/etc/fwsimple', [ 'config/fwsimple.cfg' ] ),
