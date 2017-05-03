@@ -1,11 +1,10 @@
+import configparser
+import glob
 
-from __future__ import unicode_literals, print_function, absolute_import
 from fwsimple import constants, zone
 import fwsimple.engines
 from fwsimple.zone import Zone
 
-import ConfigParser
-import glob
 
 class Firewall(object):
 
@@ -27,7 +26,7 @@ class Firewall(object):
 
     def load_config(self, configfile):
         """ Read the config file and load appropriate firewall engine """
-        self.config = ConfigParser.SafeConfigParser()
+        self.config = configparser.SafeConfigParser()
         self.config.read(configfile)
 
         # Verify configuration
@@ -83,7 +82,7 @@ class Firewall(object):
         import codecs
         import os
         from . import rules
-        ruleset = ConfigParser.SafeConfigParser(defaults={'type': 'filter'})
+        ruleset = configparser.SafeConfigParser(defaults={'type': 'filter'})
         with codecs.open(ruleset_file, 'rb', encoding='utf-8') as ruleset_fp:
             ruleset.readfp(ruleset_fp)
 
