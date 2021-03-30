@@ -1,4 +1,10 @@
 """ Data contains all the constants """
+from typing import Dict, TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from .xtypes import TrafficDirection
+# fmt: off
 BASIC_IPTABLES_INIT = [
     ['-F'],    # Flush all chains
     ['-X'],    # Delete user-defined chains
@@ -29,21 +35,21 @@ BASIC_IP6TABLES_INIT = [
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '136', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Neighbor advertisement'],
     ['-A', 'INPUT', '-p', 'icmpv6', '-m', 'icmpv6', '--icmpv6-type', '128', '-j', 'ACCEPT', '-m', 'comment', '--comment', '[ICMPv6] Echo Request']
 ]
+# fmt: on
 
-DIRECTION = {'in': 'IN', 'out': 'OUT', 'forward': 'FWD'}
+DIRECTION: Dict["TrafficDirection", str] = {"in": "IN", "out": "OUT", "forward": "FWD"}
 
 EXEC_IPTABLES = 1
 EXEC_PF = 2
 EXEC_MAP = {
-    'iptables': EXEC_IPTABLES,
-    'pf': EXEC_PF,
+    "iptables": EXEC_IPTABLES,
+    "pf": EXEC_PF,
 }
 
-GLOBAL_ZONE_NAME = 'global'
+GLOBAL_ZONE_NAME = "global"
 
-IPTABLES_ACTIONS = {'accept': 'ACCEPT', 'reject': 'REJECT', 'discard': 'DROP'}
-IPTABLES_DIRECTION = {'in': 'INPUT', 'out': 'OUTPUT', 'forward': 'FORWARD'}
+IPTABLES_ACTIONS = {"accept": "ACCEPT", "reject": "REJECT", "discard": "DROP"}
+IPTABLES_DIRECTION = {"in": "INPUT", "out": "OUTPUT", "forward": "FORWARD"}
 
 PROTO_IPV4 = 1
 PROTO_IPV6 = 2
-

@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function, absolute_import
+from typing import Iterable, List, Optional, TYPE_CHECKING
 
 # TODO: Rename Rule and Execution
 from fwsimple.lib import FirewallRule, FirewallExecution
@@ -6,15 +7,37 @@ from fwsimple import constants
 
 import ipaddress
 
-class Filter(FirewallRule, FirewallExecution):
+if TYPE_CHECKING:
+    from fwsimple.zone import Zone
+    from fwsimple.firewall import Firewall
+    from fwsimple.xtypes import TrafficDirection, FilterAction, FilterProtocol, IpNetwork, IpSourceDestMapping
 
-    def __init__(self, name, firewall, zone, source=None, destination=None, port=None,
-                 protocol='tcp', action='accept', log=False, direction='in', country=None, **options):
+
+class Filter(FirewallRule, FirewallExecution):
+    port: Optional[List[str]]
+    source: Optional[List[IpNetwork]]
+    destination: Optional[List[IpNetwork]]
+
+    def __init__(
+        self,
+        name: str,
+        firewall: "Firewall",
+        zone: str,
+        source: Optional[str] = None,
+        destination: Optional[str] = None,
+        port: Optional[str] = None,
+        protocol: "FilterProtocol" = "tcp",
+        action: "FilterAction" = "accept",
+        log: bool = False,
+        direction: "TrafficDirection" = "in",
+        country: Optional[str] = None,
+        # **options
+    ):
         """ Define firewall definition """
 
         # Private
         self._firewall = firewall
-        self._options = options
+        # self._options = options
 
         # Public : Meta data
         self.name = name
@@ -22,7 +45,7 @@ class Filter(FirewallRule, FirewallExecution):
         if self._firewall.has_zone(zone):
             self.zone = zone
         else:
-            raise Warning('Zone %s is not defined! (%s)' % (zone, self.name))
+            raise Warning("Zone %s is not defined! (%s)" % (zone, self.name))
 
         self.set_direction(direction)
         self.set_source(source)
@@ -36,42 +59,47 @@ class Filter(FirewallRule, FirewallExecution):
         if action in constants.IPTABLES_ACTIONS:
             self.action = action
         else:
-            raise Exception(
-                "Action '%s' is not understood! (%s)" %
-                (action, self.name))
+            raise Exception("Action '%s' is not understood! (%s)" % (action, self.name))
 
         self.log = bool(log)
 
-    def set_direction(self, direction):
+    def set_direction(self, direction: "TrafficDirection") -> None:
         """ Set rule direction """
         if direction in constants.DIRECTION:
             self.direction = direction
         else:
             raise Exception(
-                "Direction '%s' is not understood! (%s)" %
-                (direction, self.name))
+                "Direction '%s' is not understood! (%s)" % (direction, self.name)
+            )
 
-    def set_source(self, source = None):
+    def set_source(self, source: Optional[str] = None) -> None:
         """ Set source address(es) """
         if source:
-            self.source = [ ipaddress.ip_network(address.strip()) for address in source.split(",") ]
+            self.source = [
+                ipaddress.ip_network(address.strip()) for address in source.split(",")
+            ]
         else:
             self.source = None
 
-    def set_destination(self, destination = None):
+    def set_destination(self, destination: Optional[str] = None) -> None:
         """ Set destination address(es) """
         if destination:
-            self.destination = [ ipaddress.ip_network(address.strip()) for address in destination.split(",") ]
+            self.destination = [
+                ipaddress.ip_network(address.strip())
+                for address in destination.split(",")
+            ]
         else:
             self.destination = None
 
-    def get_source_destinations(self):
+    def get_source_destinations(self) -> Iterable[IpSourceDestMapping]:
         """ Yields all possible source/destination combinations """
         if self.source and self.destination:
             for source in self.source:
                 for destination in self.destination:
-                    if source.version == destination.version:
-                        yield(source, destination)
+                    if isinstance(source, ipaddress.IPv4Network) and isinstance(destination, ipaddress.IPv4Network):
+                        yield (source,destination)
+                    elif isinstance(source, ipaddress.IPv6Network) and isinstance(destination, ipaddress.IPv6Network):
+                        yield (source, destination)
 
         elif self.source:
             for source in self.source:
@@ -82,37 +110,28 @@ class Filter(FirewallRule, FirewallExecution):
                 yield (None, destination)
 
         else:
-            yield(None, None)
+            yield (None, None)
 
-    def set_port(self, port = None):
+    def set_port(self, port: Optional[str] = None) -> None:
         # Public : Protocol/ports
-        if not port:
-            self.port = None
-        else:
-            self.port = [ port for port in port.split(',') ]
+        self.port = None if not port else port.split(",")
 
-    def set_country(self, country = None):
-        if not country:
-            self.country = None
-        else:
-            self.country = country
+    def set_country(self, country: Optional[str] = None) -> None:
+        self.country = None if not country else country
 
     @property
-    def multiport(self):
+    def multiport(self) -> bool:
         if self.port:
-            if len(self.port) == 1:
-                if '-' in self.port[0]:
-                    return True
-                else:
-                    return False
-            else:
-                return True
+            return "-" in self.port[0] or len(self.port) != 1
         else:
             return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         myvars = vars(self)
-        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
-        return '<rules.filter.Filter(%s)>' % myrepr
+        myrepr = ", ".join(
+            "%s=%s" % (var, myvars[var])
+            for var in myvars
+            if not var.startswith("_") and myvars[var] is not None
+        )
 
-
+        return "<rules.filter.Filter(%s)>" % myrepr
