@@ -10,7 +10,6 @@ class Zone(lib.FirewallExecution):
 
     """ A firewall zone will be used for initial packet filtering """
 
-
     def __init__(self, firewall, name, expressions):
         """ Define a firewall zone """
         self.expressions = []
@@ -22,22 +21,30 @@ class Zone(lib.FirewallExecution):
             self.parse_expressions(expressions)
 
     def parse_expressions(self, expressions):
-        for expression in expressions.split(','):
+        for expression in expressions.split(","):
             self.add_expression(expression)
-
 
     def add_expression(self, expression):
         subexpression = ZoneExpression(self._firewall, self, expression)
         if self._firewall.has_zone_expression(subexpression):
-            raise Warning('Duplicate zone definition detected (zone=%s, expression=%s)' % (self.name, subexpression))
+            raise Warning(
+                "Duplicate zone definition detected (zone=%s, expression=%s)"
+                % (self.name, subexpression)
+            )
         else:
             self.expressions.append(subexpression)
 
     def __repr__(self):
         """ Return representation of object """
         myvars = vars(self)
-        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
-        return '<Zone(%s)>' % myrepr
+        myrepr = ", ".join(
+            "%s=%s" % (var, myvars[var])
+            for var in myvars
+            if not var.startswith("_") and myvars[var] is not None
+        )
+
+        return "<Zone(%s)>" % myrepr
+
 
 class ZoneExpression(lib.FirewallExecution):
 
@@ -50,8 +57,8 @@ class ZoneExpression(lib.FirewallExecution):
 
         # Check if expression is specific (specific zones preceed generic
         # zones)
-        if self.expression and ':' in self.expression:
-            (self.interface, self.source) = self.expression.split(':', 1)
+        if self.expression and ":" in self.expression:
+            (self.interface, self.source) = self.expression.split(":", 1)
             self.source = ipaddress.ip_network(self.source)
         else:
             self.interface = self.expression
@@ -67,15 +74,18 @@ class ZoneExpression(lib.FirewallExecution):
     @property
     def specific(self):
         """ Property determing if the expression is specific or generic """
-        if self.source:
-            return True
-        return False
+        return bool(self.source)
 
     def __repr__(self):
         """ Return representation of object """
         myvars = vars(self)
-        myrepr = ", ".join(["%s=%s" % (var, myvars[var]) for var in myvars if not var.startswith('_') and myvars[var] is not None])
-        return '<ZoneExpression(%s)>' % myrepr
+        myrepr = ", ".join(
+            "%s=%s" % (var, myvars[var])
+            for var in myvars
+            if not var.startswith("_") and myvars[var] is not None
+        )
+
+        return "<ZoneExpression(%s)>" % myrepr
 
     # Sorting
     def __eq__(self, other):
@@ -93,7 +103,7 @@ class ZoneExpression(lib.FirewallExecution):
         elif self.source and other.source:
             ### Check if the other has more addresses than I do
             return self.source.num_addresses < other.source.num_addresses
-        elif self.source and not other.source:
+        elif self.source:
             ### Other has no definition, so we are smaller!
             return True
         return False
@@ -110,7 +120,7 @@ class ZoneExpression(lib.FirewallExecution):
             return True
         elif self.source and other.source:
             return self.source.num_addresses > other.source.num_addresses
-        elif self.source and not other.source:
+        elif self.source:
             return False
         return True
 
