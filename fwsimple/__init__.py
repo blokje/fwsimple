@@ -11,7 +11,7 @@ def main():
     fwsimple = Firewall('/etc/fwsimple/fwsimple.cfg', dry_run)
     fwsimple.commit()
 
-__version__ = '0.2'
+__version__ = '0.2.1'
 __author__ = 'Rick Voormolen'
 __email__ = 'rick@voormolen.org'
 
