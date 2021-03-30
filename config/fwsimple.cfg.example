@@ -1,5 +1,5 @@
 [fwsimple]
-rulesets = /home/rick/Source/fwsimple/config/rules-west
+rulesets = /etc/fwsimple/rules
 engine = iptables
 
 [policy]
