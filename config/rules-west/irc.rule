@@ -1,6 +1,0 @@
-[irc]
-zone = global
-direction = out
-protocol = tcp
-port = 194,994,6667,6697
-action = discard
