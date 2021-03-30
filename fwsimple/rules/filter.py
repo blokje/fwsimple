@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 
 class Filter(FirewallRule, FirewallExecution):
     port: Optional[List[str]]
-    source: Optional[List[IpNetwork]]
-    destination: Optional[List[IpNetwork]]
+    source: Optional[List["IpNetwork"]]
+    destination: Optional[List["IpNetwork"]]
 
     def __init__(
         self,
@@ -31,7 +31,7 @@ class Filter(FirewallRule, FirewallExecution):
         log: bool = False,
         direction: "TrafficDirection" = "in",
         country: Optional[str] = None,
-        # **options
+        **options
     ):
         """ Define firewall definition """
 
@@ -91,7 +91,7 @@ class Filter(FirewallRule, FirewallExecution):
         else:
             self.destination = None
 
-    def get_source_destinations(self) -> Iterable[IpSourceDestMapping]:
+    def get_source_destinations(self) -> Iterable["IpSourceDestMapping"]:
         """ Yields all possible source/destination combinations """
         if self.source and self.destination:
             for source in self.source:

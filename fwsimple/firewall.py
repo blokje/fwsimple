@@ -100,7 +100,7 @@ class Firewall(object):
                         name=name, firewall=self, **dict(ruleset.items(rule)) # type: ignore
                     )
                     self.rules.append(firewall_rule)
-            except TypeError:
+            except TypeError as exc:
                 print("Error in %s" % name)
 
     # def apply(self):
