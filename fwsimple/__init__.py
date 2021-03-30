@@ -4,7 +4,7 @@ from .firewall import Firewall
 import sys
 
 
-def main():
+def main() -> None:
     """ Entry point """
     dry_run = "--dry-run" in sys.argv
     if dry_run:

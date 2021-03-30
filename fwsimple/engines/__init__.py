@@ -1,5 +1,5 @@
 from __future__ import unicode_literals, print_function, absolute_import
-from typing import List
+from typing import Iterable, List, TYPE_CHECKING, Type
 
 import warnings
 import subprocess
@@ -8,8 +8,14 @@ import os
 import fwsimple.lib
 import fwsimple.constants
 
+if TYPE_CHECKING:
+    from ..xtypes import TrafficDirection, FilterAction
+    from ..firewall import Firewall
+    from ..rules import Filter
+    from ..zone import Zone, ZoneExpression
 
-def load_engine(engine):
+
+def load_engine(engine: str) -> Type["BaseEngine"]:
     """ Load an engine """
     engine_name = "fwsimple.engines.%s.Engine" % engine
     try:
@@ -19,10 +25,10 @@ def load_engine(engine):
 
 
 class BaseEngine(object):
-    def __init__(self, firewall):
+    def __init__(self, firewall: "Firewall") -> None:
         self.firewall = firewall
 
-    def commit(self):
+    def commit(self) -> None:
         for cmd in self.__commit_cmds():
             if not self.firewall._dry_run:
                 self.do_exec(cmd)
@@ -40,7 +46,7 @@ class BaseEngine(object):
             warnings.warn("Execution failed: " + str(cmd))
             return -1
 
-    def __commit_cmds(self):
+    def __commit_cmds(self) -> Iterable[List[str]]:
         """Yield all the commands required to commit the
             the Firewall Configuration to the system
 
@@ -84,17 +90,20 @@ class BaseEngine(object):
         ):
             yield ["/etc/fwsimple/post-fwsimple"]
 
-    def init(self):
+    def init(self) -> Iterable[List[str]]:
         raise NotImplementedError("Function 'init' not implemented!")
 
-    def zone_create(self, zone):
+    def zone_create(self, zone: "Zone") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'zone_create' not implemented!")
 
-    def zone_expression_create(self, zone):
+    def zone_expression_create(self, zone_expression: "ZoneExpression") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'zone_expression_create' not implemented!")
 
-    def rule_create(self, rule):
+    def rule_create(self, rule: "Filter") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'rule_create' not implemented!")
 
-    def set_default_policy(self, direction, policy):
+    def set_default_policy(self, direction: "TrafficDirection", policy: "FilterAction") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'set_default_policy' not implemented!")
+
+    def zone_close(self, zone: "Zone") -> Iterable[List[str]]:
+        raise NotImplementedError("Function 'zone_close' not implemented!")

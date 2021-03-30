@@ -1,5 +1,9 @@
 """ Data contains all the constants """
+from typing import Dict, TYPE_CHECKING
 
+
+if TYPE_CHECKING:
+    from .xtypes import TrafficDirection
 # fmt: off
 BASIC_IPTABLES_INIT = [
     ['-F'],    # Flush all chains
@@ -33,7 +37,7 @@ BASIC_IP6TABLES_INIT = [
 ]
 # fmt: on
 
-DIRECTION = {"in": "IN", "out": "OUT", "forward": "FWD"}
+DIRECTION: Dict["TrafficDirection", str] = {"in": "IN", "out": "OUT", "forward": "FWD"}
 
 EXEC_IPTABLES = 1
 EXEC_PF = 2
