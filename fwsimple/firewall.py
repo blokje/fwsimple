@@ -101,7 +101,7 @@ class Firewall(object):
                     )
                     self.rules.append(firewall_rule)
             except TypeError as exc:
-                print("Error in %s: %s" % (name, exc))
+                raise Exception("Error in %s: %s" % (name, exc))
 
     # def apply(self):
     #     """ Apply firewall config """
