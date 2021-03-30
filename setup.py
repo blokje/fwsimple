@@ -14,11 +14,6 @@ config = {
     'install_requires': ['ipaddress'],
     'packages': ['fwsimple', 'fwsimple.rules', 'fwsimple.engines'],
     'name': 'fwsimple',
-    'data_files': [
-        ( '/etc/systemd/system', ['init/fwsimple.service'] ),
-        ( '/etc/fwsimple', [ 'config/fwsimple.cfg' ] ),
-        ( '/etc/fwsimple/rules',  ['config/rules/README.md' ] ),
-    ],
     'entry_points': {
         'console_scripts': [
             'fwsimple = fwsimple:main',
