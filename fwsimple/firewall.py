@@ -97,11 +97,11 @@ class Firewall(object):
             try:
                 if ruletype == "filter":
                     firewall_rule = rules.filter.Filter(
-                        name=name, firewall=self, **dict(ruleset.items(rule)) # type: ignore
+                        name=name, firewall=self, **dict(ruleset.items(rule))  # type: ignore
                     )
                     self.rules.append(firewall_rule)
             except TypeError as exc:
-                print("Error in %s" % name)
+                print("Error in %s: %s" % (name, exc))
 
     # def apply(self):
     #     """ Apply firewall config """
@@ -119,7 +119,8 @@ class Firewall(object):
 
     def get_default_policy(self, direction: str) -> "FilterAction":
         policy = self.config.get("policy", direction)
-        if policy not in ['accept', 'reject', 'discard']:
-            raise Exception(f"Policy invalid '{policy}' not allowed. Accepted values: accept, reject, discard")
+        if policy not in ["accept", "reject", "discard"]:
+            raise Exception(
+                f"Policy invalid '{policy}' not allowed. Accepted values: accept, reject, discard"
+            )
         return cast("FilterAction", policy)
-
