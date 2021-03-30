@@ -10,11 +10,12 @@ config = {
     'description': 'fwsimple',
     'author': fwsimple.__author__,
     'author_email': fwsimple.__email__,
-    'version': "%s.%s" % (fwsimple.__version__, git_version),
+    'version': fwsimple.__version__,
     'install_requires': ['ipaddress'],
     'packages': ['fwsimple', 'fwsimple.rules', 'fwsimple.engines'],
     'name': 'fwsimple',
-    'data_files': [ 
+    'data_files': [
+        ( '/etc/systemd/system', ['init/fwsimple.service'] ),
         ( '/etc/fwsimple', [ 'config/fwsimple.cfg' ] ),
         ( '/etc/fwsimple/rules',  ['config/rules/README.md' ] ),
     ],
