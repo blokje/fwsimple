@@ -1,9 +1,11 @@
 from __future__ import unicode_literals, print_function, absolute_import
+from typing import Optional, Union
 
 from fwsimple import lib, constants
 
 import ipaddress
 
+IpNetwork = Union[ipaddress.IPv4Network, ipaddress.IPv6Network]
 # Bugs:
 # 1. Detection does not work if duplicate expression is made in same zone
 class Zone(lib.FirewallExecution):
@@ -49,7 +51,8 @@ class Zone(lib.FirewallExecution):
 class ZoneExpression(lib.FirewallExecution):
 
     """ A subexpression is a small part of the zone definition """
-
+    source: Optional[IpNetwork]
+    
     def __init__(self, firewall, zone, expression):
         self._firewall = firewall
         self._zone = zone
@@ -72,9 +75,9 @@ class ZoneExpression(lib.FirewallExecution):
                 self.proto -= constants.PROTO_IPV4
 
     @property
-    def specific(self):
+    def specific(self) -> bool:
         """ Property determing if the expression is specific or generic """
-        return bool(self.source)
+        return self.source is not None
 
     def __repr__(self):
         """ Return representation of object """

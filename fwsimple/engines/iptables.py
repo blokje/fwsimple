@@ -29,7 +29,7 @@ class Engine(BaseEngine):
             yield self._ip6tables + _
 
     @property
-    def _iptables_supports_lockx(self):
+    def _iptables_supports_lockx(self) -> bool:
         return self.do_exec(["iptables", "-w", "-L", "-n"], False) == 0
 
     #

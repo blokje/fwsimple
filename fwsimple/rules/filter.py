@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function, absolute_import
+from typing import List, Optional
 
 # TODO: Rename Rule and Execution
 from fwsimple.lib import FirewallRule, FirewallExecution
@@ -8,6 +9,8 @@ import ipaddress
 
 
 class Filter(FirewallRule, FirewallExecution):
+    port: Optional[List[str]]
+    
     def __init__(
         self,
         name,
@@ -102,13 +105,13 @@ class Filter(FirewallRule, FirewallExecution):
 
     def set_port(self, port=None):
         # Public : Protocol/ports
-        self.port = None if not port else [port for port in port.split(",")]
+        self.port = None if not port else port.split(",")
 
     def set_country(self, country=None):
         self.country = None if not country else country
 
     @property
-    def multiport(self):
+    def multiport(self) -> bool:
         if self.port:
             return "-" in self.port[0] or len(self.port) != 1
         else:

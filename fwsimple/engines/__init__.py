@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, print_function, absolute_import
+from typing import List
 
 import warnings
 import subprocess
@@ -28,7 +29,7 @@ class BaseEngine(object):
             else:
                 print(subprocess.list2cmdline(cmd))
 
-    def do_exec(self, cmd, warn=True):
+    def do_exec(self, cmd: List[str], warn: bool = True) -> int:
         """ Execute command """
         try:
             status = subprocess.call(cmd, stdout=open(os.devnull, "wb"))
@@ -37,6 +38,7 @@ class BaseEngine(object):
             return status
         except OSError:
             warnings.warn("Execution failed: " + str(cmd))
+            return -1
 
     def __commit_cmds(self):
         """Yield all the commands required to commit the
