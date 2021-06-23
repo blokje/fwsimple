@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .zone import ZoneExpression
 
 
-class Firewall(object):
+class Firewall:
 
     """The Firewall itself"""
 
