@@ -1,5 +1,6 @@
 from __future__ import unicode_literals, print_function, absolute_import
 from typing import TYPE_CHECKING, Type
+
 if TYPE_CHECKING:
     from .xtypes import FilterAction
     from .engines import BaseEngine
@@ -11,10 +12,10 @@ import importlib
 
 class FirewallExecution:
     def __str__(self) -> str:
-        """ Return formatted string based on execution type """
+        """Return formatted string based on execution type"""
         return repr(self)
 
-    def args_iptables(self): # type: ignore
+    def args_iptables(self):  # type: ignore
         raise NotImplementedError("This function is not (yet) implemented")
 
 
@@ -34,7 +35,7 @@ class FirewallRule:
 
 
 def _load_class(classname: str) -> Type["BaseEngine"]:
-    """ Load a class """
+    """Load a class"""
     (mod_name, cls) = classname.rsplit(".", 1)
     mod = importlib.import_module(mod_name)
-    return getattr(mod, cls) # type: ignore
+    return getattr(mod, cls)  # type: ignore
