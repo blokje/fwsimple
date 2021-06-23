@@ -117,12 +117,12 @@ class ZoneExpression(lib.FirewallExecution):
 
         if self._zone.name == constants.GLOBAL_ZONE_NAME:
             return True
-        elif other._zone.name == constants.GLOBAL_ZONE_NAME:
+        if other._zone.name == constants.GLOBAL_ZONE_NAME:
             return False
-        elif self.source and other.source:
+        if self.source and other.source:
             ### Check if the other has more addresses than I do
             return self.source.num_addresses < other.source.num_addresses
-        elif self.source:
+        if self.source:
             ### Other has no definition, so we are smaller!
             return True
         return False
