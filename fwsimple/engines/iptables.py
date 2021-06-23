@@ -10,8 +10,9 @@ if TYPE_CHECKING:
     from ..rules import Filter
     from ..xtypes import TrafficDirection, FilterAction
 
+
 class Engine(BaseEngine):
-    """ Iptables Engine """
+    """Iptables Engine"""
 
     def init(self) -> Iterable[List[str]]:
         """Initialize the firewall, flush existing and add
@@ -41,13 +42,15 @@ class Engine(BaseEngine):
     # Zones
     #
     def zone_create(self, zone: "Zone") -> Iterable[List[str]]:
-        """ Create the zones for iptable and ip6tables """
+        """Create the zones for iptable and ip6tables"""
         for direction in constants.DIRECTION:
             cmd = ["-N", "%s_%s" % (constants.DIRECTION[direction], zone.name)]
             yield from self.__iptables(cmd)
 
-    def zone_expression_create(self, expression: "ZoneExpression") -> Iterable[List[str]]:
-        """ Create expressions for the zones based on interface and optional source """
+    def zone_expression_create(
+        self, expression: "ZoneExpression"
+    ) -> Iterable[List[str]]:
+        """Create expressions for the zones based on interface and optional source"""
         for direction in constants.DIRECTION:
             cmd = ["-A", constants.IPTABLES_DIRECTION[direction]]
             cmd += ["-m", "comment", "--comment", "Zone %s" % expression._zone.name]
@@ -70,7 +73,7 @@ class Engine(BaseEngine):
             yield from self.__iptables(cmd, expression.proto)
 
     def zone_close(self, zone: "Zone") -> Iterable[List[str]]:
-        """ Finish up the zones in iptables and ip6tables """
+        """Finish up the zones in iptables and ip6tables"""
         for direction in constants.DIRECTION:
             cmd = ["-A", "%s_%s" % (constants.DIRECTION[direction], zone.name)]
             cmd += ["-j", "RETURN"]
@@ -124,14 +127,20 @@ class Engine(BaseEngine):
             cmd += ["-j", constants.IPTABLES_ACTIONS[rule.action]]
             yield from self.__iptables(cmd, proto)
 
-    def set_default_policy(self, direction: "TrafficDirection", policy: "FilterAction") -> Iterable[List[str]]:
-        """ Set default firewall policy """
+    def set_default_policy(
+        self, direction: "TrafficDirection", policy: "FilterAction"
+    ) -> Iterable[List[str]]:
+        """Set default firewall policy"""
         chain = constants.IPTABLES_DIRECTION[direction]
         action = constants.IPTABLES_ACTIONS[policy]
         cmd = ["-A", chain, "-j", action]
         yield from self.__iptables(cmd)
 
-    def __iptables(self, cmd: List[str], protoversion: int =constants.PROTO_IPV4 + constants.PROTO_IPV6) -> Iterable[List[str]]:
+    def __iptables(
+        self,
+        cmd: List[str],
+        protoversion: int = constants.PROTO_IPV4 + constants.PROTO_IPV6,
+    ) -> Iterable[List[str]]:
         if protoversion & constants.PROTO_IPV4:
             yield self._iptables + cmd
         if protoversion & constants.PROTO_IPV6:
@@ -139,7 +148,7 @@ class Engine(BaseEngine):
 
     @staticmethod
     def _translate_port_range(ports: List[str]) -> str:
-        """ Translate port range to IPtables compatible format """
+        """Translate port range to IPtables compatible format"""
         _ports = []
         for port in ports:
             if "-" in port:
