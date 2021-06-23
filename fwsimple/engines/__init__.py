@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def load_engine(engine: str) -> Type["BaseEngine"]:
-    """ Load an engine """
+    """Load an engine"""
     engine_name = "fwsimple.engines.%s.Engine" % engine
     try:
         return fwsimple.lib._load_class(engine_name)
@@ -36,7 +36,7 @@ class BaseEngine(object):
                 print(subprocess.list2cmdline(cmd))
 
     def do_exec(self, cmd: List[str], warn: bool = True) -> int:
-        """ Execute command """
+        """Execute command"""
         try:
             status = subprocess.call(cmd, stdout=open(os.devnull, "wb"))
             if warn and status != 0:
@@ -96,13 +96,17 @@ class BaseEngine(object):
     def zone_create(self, zone: "Zone") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'zone_create' not implemented!")
 
-    def zone_expression_create(self, zone_expression: "ZoneExpression") -> Iterable[List[str]]:
+    def zone_expression_create(
+        self, zone_expression: "ZoneExpression"
+    ) -> Iterable[List[str]]:
         raise NotImplementedError("Function 'zone_expression_create' not implemented!")
 
     def rule_create(self, rule: "Filter") -> Iterable[List[str]]:
         raise NotImplementedError("Function 'rule_create' not implemented!")
 
-    def set_default_policy(self, direction: "TrafficDirection", policy: "FilterAction") -> Iterable[List[str]]:
+    def set_default_policy(
+        self, direction: "TrafficDirection", policy: "FilterAction"
+    ) -> Iterable[List[str]]:
         raise NotImplementedError("Function 'set_default_policy' not implemented!")
 
     def zone_close(self, zone: "Zone") -> Iterable[List[str]]:

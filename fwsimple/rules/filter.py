@@ -10,7 +10,13 @@ import ipaddress
 if TYPE_CHECKING:
     from fwsimple.zone import Zone
     from fwsimple.firewall import Firewall
-    from fwsimple.xtypes import TrafficDirection, FilterAction, FilterProtocol, IpNetwork, IpSourceDestMapping
+    from fwsimple.xtypes import (
+        TrafficDirection,
+        FilterAction,
+        FilterProtocol,
+        IpNetwork,
+        IpSourceDestMapping,
+    )
 
 
 class Filter(FirewallRule, FirewallExecution):
@@ -33,7 +39,7 @@ class Filter(FirewallRule, FirewallExecution):
         country: Optional[str] = None,
         **options
     ):
-        """ Define firewall definition """
+        """Define firewall definition"""
 
         # Private
         self._firewall = firewall
@@ -64,7 +70,7 @@ class Filter(FirewallRule, FirewallExecution):
         self.log = bool(log)
 
     def set_direction(self, direction: "TrafficDirection") -> None:
-        """ Set rule direction """
+        """Set rule direction"""
         if direction in constants.DIRECTION:
             self.direction = direction
         else:
@@ -73,7 +79,7 @@ class Filter(FirewallRule, FirewallExecution):
             )
 
     def set_source(self, source: Optional[str] = None) -> None:
-        """ Set source address(es) """
+        """Set source address(es)"""
         if source:
             self.source = [
                 ipaddress.ip_network(address.strip()) for address in source.split(",")
@@ -82,7 +88,7 @@ class Filter(FirewallRule, FirewallExecution):
             self.source = None
 
     def set_destination(self, destination: Optional[str] = None) -> None:
-        """ Set destination address(es) """
+        """Set destination address(es)"""
         if destination:
             self.destination = [
                 ipaddress.ip_network(address.strip())
@@ -92,13 +98,17 @@ class Filter(FirewallRule, FirewallExecution):
             self.destination = None
 
     def get_source_destinations(self) -> Iterable["IpSourceDestMapping"]:
-        """ Yields all possible source/destination combinations """
+        """Yields all possible source/destination combinations"""
         if self.source and self.destination:
             for source in self.source:
                 for destination in self.destination:
-                    if isinstance(source, ipaddress.IPv4Network) and isinstance(destination, ipaddress.IPv4Network):
-                        yield (source,destination)
-                    elif isinstance(source, ipaddress.IPv6Network) and isinstance(destination, ipaddress.IPv6Network):
+                    if isinstance(source, ipaddress.IPv4Network) and isinstance(
+                        destination, ipaddress.IPv4Network
+                    ):
+                        yield (source, destination)
+                    elif isinstance(source, ipaddress.IPv6Network) and isinstance(
+                        destination, ipaddress.IPv6Network
+                    ):
                         yield (source, destination)
 
         elif self.source:

@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 class Firewall(object):
 
-    """ The Firewall itself """
+    """The Firewall itself"""
 
     def __init__(self, configfile: str, dry_run: bool = False) -> None:
-        """ Load the configuration """
+        """Load the configuration"""
         # Initialize attributes
         self.rules: List["Filter"] = []
         self.zones: List["Zone"] = []
@@ -31,7 +31,7 @@ class Firewall(object):
         self.load_rulesets()
 
     def load_config(self, configfile: str) -> None:
-        """ Read the config file and load appropriate firewall engine """
+        """Read the config file and load appropriate firewall engine"""
         self.config.read(configfile)
 
         # Verify configuration
@@ -45,7 +45,7 @@ class Firewall(object):
             raise Exception("Unsupported engine!")
 
     def load_zones(self) -> None:
-        """ Load zones and add magic zone global """
+        """Load zones and add magic zone global"""
         zone_global = Zone(self, constants.GLOBAL_ZONE_NAME, None)
         zone_global.add_expression(None)
         self.zones.append(zone_global)
@@ -54,11 +54,11 @@ class Firewall(object):
             self.zones.append(Zone(self, *zone))
 
     def has_zone(self, zone_name: str) -> bool:
-        """ Check if zone already exists """
+        """Check if zone already exists"""
         return any(zone.name == zone_name for zone in self.zones)
 
     def has_zone_expression(self, new_expression: "ZoneExpression") -> bool:
-        """ Check if zone expression already exists """
+        """Check if zone expression already exists"""
         for zone in self.zones:
             for expression in zone.expressions:
                 if new_expression == expression:
@@ -114,7 +114,7 @@ class Firewall(object):
     #             print(subprocess.list2cmdline(runcmd))
 
     def commit(self) -> None:
-        """ Request engine to commit configuration """
+        """Request engine to commit configuration"""
         self.engine.commit()
 
     def get_default_policy(self, direction: str) -> "FilterAction":
