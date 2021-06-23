@@ -24,7 +24,7 @@ def load_engine(engine: str) -> Type["BaseEngine"]:
         raise NotImplementedError("Engine %s is not implemented" % engine)
 
 
-class BaseEngine(object):
+class BaseEngine:
     def __init__(self, firewall: "Firewall") -> None:
         self.firewall = firewall
 

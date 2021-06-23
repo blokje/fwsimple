@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 import importlib
 
 
-class FirewallExecution(object):
+class FirewallExecution:
     def __str__(self) -> str:
         """ Return formatted string based on execution type """
         return repr(self)
@@ -18,7 +18,7 @@ class FirewallExecution(object):
         raise NotImplementedError("This function is not (yet) implemented")
 
 
-class FirewallRule(object):
+class FirewallRule:
     # def is_filter(self):
     #     return isinstance(self, FirewallRuleFilter)
     action: "FilterAction"
