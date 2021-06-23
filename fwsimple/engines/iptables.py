@@ -137,7 +137,8 @@ class Engine(BaseEngine):
         if protoversion & constants.PROTO_IPV6:
             yield self._ip6tables + cmd
 
-    def _translate_port_range(self, ports: List[str]) -> str:
+    @staticmethod
+    def _translate_port_range(ports: List[str]) -> str:
         """ Translate port range to IPtables compatible format """
         _ports = []
         for port in ports:
