@@ -123,8 +123,7 @@ class Filter(FirewallRule, FirewallExecution):
     def multiport(self) -> bool:
         if self.port:
             return "-" in self.port[0] or len(self.port) != 1
-        else:
-            return False
+        return False
 
     def __repr__(self) -> str:
         myvars = vars(self)
