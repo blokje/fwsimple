@@ -4,6 +4,7 @@ from typing import List, Optional, TYPE_CHECKING, Union
 from fwsimple import lib, constants
 
 import ipaddress
+
 if TYPE_CHECKING:
     from .firewall import Firewall
     from .xtypes import IpNetwork
@@ -12,10 +13,12 @@ if TYPE_CHECKING:
 # 1. Detection does not work if duplicate expression is made in same zone
 class Zone(lib.FirewallExecution):
 
-    """ A firewall zone will be used for initial packet filtering """
+    """A firewall zone will be used for initial packet filtering"""
 
-    def __init__(self, firewall: "Firewall", name: str, expressions: Optional[str]) -> None:
-        """ Define a firewall zone """
+    def __init__(
+        self, firewall: "Firewall", name: str, expressions: Optional[str]
+    ) -> None:
+        """Define a firewall zone"""
         self._firewall = firewall
         self.name = name
 
@@ -23,8 +26,6 @@ class Zone(lib.FirewallExecution):
 
         if expressions:
             self.parse_expressions(expressions)
-
-
 
     def parse_expressions(self, expressions: str) -> None:
         for expression in expressions.split(","):
@@ -40,7 +41,7 @@ class Zone(lib.FirewallExecution):
         self.expressions.append(subexpression)
 
     def __repr__(self) -> str:
-        """ Return representation of object """
+        """Return representation of object"""
         myvars = vars(self)
         myrepr = ", ".join(
             "%s=%s" % (var, myvars[var])
@@ -53,11 +54,14 @@ class Zone(lib.FirewallExecution):
 
 class ZoneExpression(lib.FirewallExecution):
 
-    """ A subexpression is a small part of the zone definition """
+    """A subexpression is a small part of the zone definition"""
+
     source: Optional["IpNetwork"]
     interface: Optional[str]
-    
-    def __init__(self, firewall: "Firewall", zone: "Zone", expression: Optional[str]) -> None:
+
+    def __init__(
+        self, firewall: "Firewall", zone: "Zone", expression: Optional[str]
+    ) -> None:
         self._firewall = firewall
         self._zone = zone
         self.expression = expression
@@ -80,11 +84,11 @@ class ZoneExpression(lib.FirewallExecution):
 
     @property
     def specific(self) -> bool:
-        """ Property determing if the expression is specific or generic """
+        """Property determing if the expression is specific or generic"""
         return self.source is not None
 
     def __repr__(self) -> str:
-        """ Return representation of object """
+        """Return representation of object"""
         myvars = vars(self)
         myrepr = ", ".join(
             "%s=%s" % (var, myvars[var])
@@ -106,10 +110,10 @@ class ZoneExpression(lib.FirewallExecution):
         return False
 
     def __lt__(self, other: object) -> bool:
-        """ Check if I should be smaller than the other """
+        """Check if I should be smaller than the other"""
         if not isinstance(other, ZoneExpression):
             return False
-            
+
         if self._zone.name == constants.GLOBAL_ZONE_NAME:
             return True
         elif other._zone.name == constants.GLOBAL_ZONE_NAME:
