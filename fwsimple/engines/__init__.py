@@ -35,7 +35,8 @@ class BaseEngine:
             else:
                 print(subprocess.list2cmdline(cmd))
 
-    def do_exec(self, cmd: List[str], warn: bool = True) -> int:
+    @staticmethod
+    def do_exec(cmd: List[str], warn: bool = True) -> int:
         """Execute command"""
         try:
             status = subprocess.call(cmd, stdout=open(os.devnull, "wb"))
