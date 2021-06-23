@@ -9,7 +9,7 @@ IpSourceDestMapping = Union[
     Tuple[IPv6Network, IPv6Network],
     Tuple[None, Union[IPv4Network, IPv6Network]],
     Tuple[Union[IPv4Network, IPv6Network], None],
-    Tuple[None, None]
+    Tuple[None, None],
 ]
 FilterAction = Literal["accept", "reject", "discard"]
 FilterProtocol = Literal["tcp", "udp", "icmp"]

@@ -5,7 +5,7 @@ import sys
 
 
 def main() -> None:
-    """ Entry point """
+    """Entry point"""
     dry_run = "--dry-run" in sys.argv
     if dry_run:
         print("DRY RUN, NO COMMIT")
