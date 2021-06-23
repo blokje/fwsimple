@@ -37,8 +37,7 @@ class Zone(lib.FirewallExecution):
                 "Duplicate zone definition detected (zone=%s, expression=%s)"
                 % (self.name, subexpression)
             )
-        else:
-            self.expressions.append(subexpression)
+        self.expressions.append(subexpression)
 
     def __repr__(self) -> str:
         """ Return representation of object """
