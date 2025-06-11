@@ -67,9 +67,9 @@ class Engine(BaseEngine):
         # IPv4 ICMP sane defaults
         ipv4_icmp_rules = [
             (["ip", "version", "4", "icmp", "type", "echo-request", "accept"], "\"[ICMP] Echo Request\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "4", "accept"], "\"[ICMP] Fragmentation needed\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "3", "accept"], "\"[ICMP] Port unreachable\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "1", "accept"], "\"[ICMP] Host unreachable\""),
+            (["ip", "version", "4", "icmp", "type", "3", "code", "4", "accept"], "\"[ICMP] Fragmentation needed\""),
+            (["ip", "version", "4", "icmp", "type", "3", "code", "3", "accept"], "\"[ICMP] Port unreachable\""),
+            (["ip", "version", "4", "icmp", "type", "3", "code", "1", "accept"], "\"[ICMP] Host unreachable\""),
             (["ip", "version", "4", "icmp", "type", "source-quench", "accept"], "\"[ICMP] Source Quench (RFC 792)\""),
         ]
         for rule_parts, comment in ipv4_icmp_rules:
