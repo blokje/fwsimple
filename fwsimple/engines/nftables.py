@@ -131,8 +131,9 @@ class Engine(BaseEngine):
                 else:
                     cmd += ["ip", "saddr", str(expression.source)]
 
+
             # Then add comment
-            cmd += ["comment", f"Zone {expression._zone.name}"]
+            cmd += ["comment", f"\"Zone {expression._zone.name}\""]
 
             # Finally, add verdict (jump)
             cmd += ["jump", target_zone_chain_name]
@@ -179,7 +180,7 @@ class Engine(BaseEngine):
             action_cmd = self._nft + ["add", "rule", "inet", "fwsimple", chain_name]
             action_cmd += ["ct", "state", "new"]
             action_cmd.extend(cmd_parts) # Add protocol, port, IPs first
-            action_cmd += ["comment", rule.name] # Then comment
+            action_cmd += ["comment", f"\"{rule.name}\""] # Then comment
 
             if rule.log:
                 action_cmd.extend(["log", "prefix", f"{rule.name[:24]}: "])

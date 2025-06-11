@@ -130,9 +130,9 @@ forward = discard
 
             # Global zone expressions (linking from base chains)
             # For global zone, no interface or IP, so it's just a jump with comment
-            "add rule inet fwsimple input comment \"Zone global\" jump ZONE_IN_global",
-            "add rule inet fwsimple output comment \"Zone global\" jump ZONE_OUT_global",
-            "add rule inet fwsimple forward comment \"Zone global\" jump ZONE_FWD_global",
+            "add rule inet fwsimple input comment \"\\\"Zone global\\\"\" jump ZONE_IN_global",
+            "add rule inet fwsimple output comment \"\\\"Zone global\\\"\" jump ZONE_OUT_global",
+            "add rule inet fwsimple forward comment \"\\\"Zone global\\\"\" jump ZONE_FWD_global",
 
             # Global zone closing
             "add rule inet fwsimple ZONE_IN_global return",
@@ -278,31 +278,31 @@ action = accept
             "nft add chain inet fwsimple ZONE_IN_dmz", "nft add chain inet fwsimple ZONE_OUT_dmz", "nft add chain inet fwsimple ZONE_FWD_dmz",
 
             # 3. Zone Expression Creation (Order: global, dmz (specific), ext (generic), int (generic))
-            "nft add rule inet fwsimple input comment \"Zone global\" jump ZONE_IN_global",
-            "nft add rule inet fwsimple output comment \"Zone global\" jump ZONE_OUT_global",
-            "nft add rule inet fwsimple forward comment \"Zone global\" jump ZONE_FWD_global",
-            "nft add rule inet fwsimple input iif eth2 ip saddr 10.0.1.0/24 comment \"Zone dmz\" jump ZONE_IN_dmz",
-            "nft add rule inet fwsimple output oif eth2 ip daddr 10.0.1.0/24 comment \"Zone dmz\" jump ZONE_OUT_dmz",
-            "nft add rule inet fwsimple forward iif eth2 ip saddr 10.0.1.0/24 comment \"Zone dmz\" jump ZONE_FWD_dmz",
-            "nft add rule inet fwsimple input iif eth0 comment \"Zone ext\" jump ZONE_IN_ext",
-            "nft add rule inet fwsimple output oif eth0 comment \"Zone ext\" jump ZONE_OUT_ext",
-            "nft add rule inet fwsimple forward iif eth0 comment \"Zone ext\" jump ZONE_FWD_ext",
-            "nft add rule inet fwsimple input iif eth1 comment \"Zone int\" jump ZONE_IN_int",
-            "nft add rule inet fwsimple output oif eth1 comment \"Zone int\" jump ZONE_OUT_int",
-            "nft add rule inet fwsimple forward iif eth1 comment \"Zone int\" jump ZONE_FWD_int",
+            "nft add rule inet fwsimple input comment \"\\\"Zone global\\\"\" jump ZONE_IN_global",
+            "nft add rule inet fwsimple output comment \"\\\"Zone global\\\"\" jump ZONE_OUT_global",
+            "nft add rule inet fwsimple forward comment \"\\\"Zone global\\\"\" jump ZONE_FWD_global",
+            "nft add rule inet fwsimple input iif eth2 ip saddr 10.0.1.0/24 comment \"\\\"Zone dmz\\\"\" jump ZONE_IN_dmz",
+            "nft add rule inet fwsimple output oif eth2 ip daddr 10.0.1.0/24 comment \"\\\"Zone dmz\\\"\" jump ZONE_OUT_dmz",
+            "nft add rule inet fwsimple forward iif eth2 ip saddr 10.0.1.0/24 comment \"\\\"Zone dmz\\\"\" jump ZONE_FWD_dmz",
+            "nft add rule inet fwsimple input iif eth0 comment \"\\\"Zone ext\\\"\" jump ZONE_IN_ext",
+            "nft add rule inet fwsimple output oif eth0 comment \"\\\"Zone ext\\\"\" jump ZONE_OUT_ext",
+            "nft add rule inet fwsimple forward iif eth0 comment \"\\\"Zone ext\\\"\" jump ZONE_FWD_ext",
+            "nft add rule inet fwsimple input iif eth1 comment \"\\\"Zone int\\\"\" jump ZONE_IN_int",
+            "nft add rule inet fwsimple output oif eth1 comment \"\\\"Zone int\\\"\" jump ZONE_OUT_int",
+            "nft add rule inet fwsimple forward iif eth1 comment \"\\\"Zone int\\\"\" jump ZONE_FWD_int",
 
             # 4. Rule Creation (Order by action: discard, reject, accept; then file order)
-            # Note: rule comment strings are not quoted if they don't contain spaces. IPs get /32 or /128. Port sets with spaces get quoted by list2cmdline.
-            "nft add rule inet fwsimple ZONE_IN_ext ct state new udp dport 5000 comment test_rules.rule::discard_udp_5000_to_ext drop",
-            "nft add rule inet fwsimple ZONE_IN_dmz ct state new tcp comment test_rules.rule::reject_all_tcp_to_dmz reject",
-            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport 22 ip saddr 192.168.1.100/32 comment test_rules.rule::tcp_ssh_from_host_to_int accept",
-            "nft add rule inet fwsimple ZONE_IN_ext ct state new tcp dport \"{ 80, 443 }\" comment test_rules.rule::tcp_web_ports_logged_to_ext log prefix \"test_rules.rule::tcp_web: \" accept",
-            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport \"{ 1000-1010 }\" comment test_rules.rule::tcp_custom_app_range_to_int accept",
-            "nft add rule inet fwsimple ZONE_OUT_ext ct state new udp dport 53 ip daddr 8.8.8.8/32 comment test_rules.rule::udp_dns_to_server_from_ext accept",
-            "nft add rule inet fwsimple ZONE_IN_int ct state new icmp comment test_rules.rule::icmp_ping_from_int accept",
-            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport 22 ip6 saddr 2001:db8:cafe:1::100/128 comment test_rules.rule::tcp6_ssh_from_host_to_int accept",
-            "nft add rule inet fwsimple ZONE_OUT_ext ct state new udp dport 53 ip6 daddr 2001:db8:feed::1/128 comment test_rules.rule::udp6_dns_to_server_from_ext log prefix \"test_rules.rule::udp6_dn: \" accept",
-            "nft add rule inet fwsimple ZONE_OUT_int ct state new icmpv6 ip6 daddr 2001:db8:dead::beef/128 comment test_rules.rule::icmp6_ping_host_from_int accept",
+            # Note: rule comment strings are now quoted. IPs get /32 or /128. Port sets with spaces get quoted by list2cmdline.
+            "nft add rule inet fwsimple ZONE_IN_ext ct state new udp dport 5000 comment \\\"test_rules.rule::discard_udp_5000_to_ext\\\" drop",
+            "nft add rule inet fwsimple ZONE_IN_dmz ct state new tcp comment \\\"test_rules.rule::reject_all_tcp_to_dmz\\\" reject",
+            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport 22 ip saddr 192.168.1.100/32 comment \\\"test_rules.rule::tcp_ssh_from_host_to_int\\\" accept",
+            "nft add rule inet fwsimple ZONE_IN_ext ct state new tcp dport \"{ 80, 443 }\" comment \\\"test_rules.rule::tcp_web_ports_logged_to_ext\\\" log prefix \"test_rules.rule::tcp_web: \" accept",
+            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport \"{ 1000-1010 }\" comment \\\"test_rules.rule::tcp_custom_app_range_to_int\\\" accept",
+            "nft add rule inet fwsimple ZONE_OUT_ext ct state new udp dport 53 ip daddr 8.8.8.8/32 comment \\\"test_rules.rule::udp_dns_to_server_from_ext\\\" accept",
+            "nft add rule inet fwsimple ZONE_IN_int ct state new icmp comment \\\"test_rules.rule::icmp_ping_from_int\\\" accept",
+            "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport 22 ip6 saddr 2001:db8:cafe:1::100/128 comment \\\"test_rules.rule::tcp6_ssh_from_host_to_int\\\" accept",
+            "nft add rule inet fwsimple ZONE_OUT_ext ct state new udp dport 53 ip6 daddr 2001:db8:feed::1/128 comment \\\"test_rules.rule::udp6_dns_to_server_from_ext\\\" log prefix \"test_rules.rule::udp6_dn: \" accept",
+            "nft add rule inet fwsimple ZONE_OUT_int ct state new icmpv6 ip6 daddr 2001:db8:dead::beef/128 comment \\\"test_rules.rule::icmp6_ping_host_from_int\\\" accept",
 
             # 5. Zone Closing
             "nft add rule inet fwsimple ZONE_IN_global return", "nft add rule inet fwsimple ZONE_OUT_global return", "nft add rule inet fwsimple ZONE_FWD_global return",
@@ -386,25 +386,25 @@ vpn_users = tun0
             # 3. Zone Expression Creation
             # Order: global, then specific (sorted by num_addresses, then config order), then generic (config order).
             # Global
-            "nft add rule inet fwsimple input comment \"Zone global\" jump ZONE_IN_global",
-            "nft add rule inet fwsimple output comment \"Zone global\" jump ZONE_OUT_global",
-            "nft add rule inet fwsimple forward comment \"Zone global\" jump ZONE_FWD_global",
+            "nft add rule inet fwsimple input comment \"\\\"Zone global\\\"\" jump ZONE_IN_global",
+            "nft add rule inet fwsimple output comment \"\\\"Zone global\\\"\" jump ZONE_OUT_global",
+            "nft add rule inet fwsimple forward comment \"\\\"Zone global\\\"\" jump ZONE_FWD_global",
             # private_lan = eth1:192.168.1.0/24 (Specific)
-            "nft add rule inet fwsimple input iif eth1 ip saddr 192.168.1.0/24 comment \"Zone private_lan\" jump ZONE_IN_private_lan",
-            "nft add rule inet fwsimple output oif eth1 ip daddr 192.168.1.0/24 comment \"Zone private_lan\" jump ZONE_OUT_private_lan",
-            "nft add rule inet fwsimple forward iif eth1 ip saddr 192.168.1.0/24 comment \"Zone private_lan\" jump ZONE_FWD_private_lan",
+            "nft add rule inet fwsimple input iif eth1 ip saddr 192.168.1.0/24 comment \"\\\"Zone private_lan\\\"\" jump ZONE_IN_private_lan",
+            "nft add rule inet fwsimple output oif eth1 ip daddr 192.168.1.0/24 comment \"\\\"Zone private_lan\\\"\" jump ZONE_OUT_private_lan",
+            "nft add rule inet fwsimple forward iif eth1 ip saddr 192.168.1.0/24 comment \"\\\"Zone private_lan\\\"\" jump ZONE_FWD_private_lan",
             # guest_wifi = eth1:192.168.2.0/24 (Specific)
-            "nft add rule inet fwsimple input iif eth1 ip saddr 192.168.2.0/24 comment \"Zone guest_wifi\" jump ZONE_IN_guest_wifi",
-            "nft add rule inet fwsimple output oif eth1 ip daddr 192.168.2.0/24 comment \"Zone guest_wifi\" jump ZONE_OUT_guest_wifi",
-            "nft add rule inet fwsimple forward iif eth1 ip saddr 192.168.2.0/24 comment \"Zone guest_wifi\" jump ZONE_FWD_guest_wifi",
+            "nft add rule inet fwsimple input iif eth1 ip saddr 192.168.2.0/24 comment \"\\\"Zone guest_wifi\\\"\" jump ZONE_IN_guest_wifi",
+            "nft add rule inet fwsimple output oif eth1 ip daddr 192.168.2.0/24 comment \"\\\"Zone guest_wifi\\\"\" jump ZONE_OUT_guest_wifi",
+            "nft add rule inet fwsimple forward iif eth1 ip saddr 192.168.2.0/24 comment \"\\\"Zone guest_wifi\\\"\" jump ZONE_FWD_guest_wifi",
             # public = eth0 (Generic)
-            "nft add rule inet fwsimple input iif eth0 comment \"Zone public\" jump ZONE_IN_public",
-            "nft add rule inet fwsimple output oif eth0 comment \"Zone public\" jump ZONE_OUT_public",
-            "nft add rule inet fwsimple forward iif eth0 comment \"Zone public\" jump ZONE_FWD_public",
+            "nft add rule inet fwsimple input iif eth0 comment \"\\\"Zone public\\\"\" jump ZONE_IN_public",
+            "nft add rule inet fwsimple output oif eth0 comment \"\\\"Zone public\\\"\" jump ZONE_OUT_public",
+            "nft add rule inet fwsimple forward iif eth0 comment \"\\\"Zone public\\\"\" jump ZONE_FWD_public",
             # vpn_users = tun0 (Generic)
-            "nft add rule inet fwsimple input iif tun0 comment \"Zone vpn_users\" jump ZONE_IN_vpn_users",
-            "nft add rule inet fwsimple output oif tun0 comment \"Zone vpn_users\" jump ZONE_OUT_vpn_users",
-            "nft add rule inet fwsimple forward iif tun0 comment \"Zone vpn_users\" jump ZONE_FWD_vpn_users",
+            "nft add rule inet fwsimple input iif tun0 comment \"\\\"Zone vpn_users\\\"\" jump ZONE_IN_vpn_users",
+            "nft add rule inet fwsimple output oif tun0 comment \"\\\"Zone vpn_users\\\"\" jump ZONE_OUT_vpn_users",
+            "nft add rule inet fwsimple forward iif tun0 comment \"\\\"Zone vpn_users\\\"\" jump ZONE_FWD_vpn_users",
 
             # 4. Rule Creation (none)
 
