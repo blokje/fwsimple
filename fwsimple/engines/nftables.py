@@ -92,7 +92,7 @@ class Engine(BaseEngine):
     def zone_create(self, zone: "Zone") -> Iterable[List[str]]:
         """Create the zone chains"""
         for direction_key in constants.DIRECTION:
-            chain_name = f"ZONE_{constants.DIRECTION[direction_key]}_{zone.name}"
+            chain_name = "ZONE_{}_{}".format(constants.DIRECTION[direction_key], zone.name)
             yield self._nft + ["add", "chain", "inet", "fwsimple", chain_name]
 
     def zone_expression_create(
@@ -111,7 +111,7 @@ class Engine(BaseEngine):
             if not base_chain_name:
                 continue
 
-            target_zone_chain_name = f"ZONE_{constants.DIRECTION[direction_key]}_{expression._zone.name}"
+            target_zone_chain_name = "ZONE_{}_{}".format(constants.DIRECTION[direction_key], expression._zone.name)
 
             cmd = self._nft + ["add", "rule", "inet", "fwsimple", base_chain_name]
 
@@ -136,7 +136,7 @@ class Engine(BaseEngine):
             # Add verdict (jump) first
             cmd += ["jump", target_zone_chain_name]
             # Then add comment
-            cmd += ["comment", f"\"Zone {expression._zone.name}\""]
+            cmd += ["comment", "\"Zone {}\"".format(expression._zone.name)]
             yield cmd
 
     def zone_close(self, zone: "Zone") -> Iterable[List[str]]:
@@ -147,13 +147,11 @@ class Engine(BaseEngine):
 
     def rule_create(self, rule: "Filter") -> Iterable[List[str]]:
         """Create firewall rules"""
-        chain_name = f"ZONE_{constants.DIRECTION[rule.direction]}_{rule.zone}"
+        chain_name = "ZONE_{}_{}".format(constants.DIRECTION[rule.direction], rule.zone)
 
         if rule.country:
             warnings.warn(
-                f"GeoIP filtering for rule '{rule.name}' (country: {rule.country}) "
-                "is not yet implemented in the nftables engine. "
-                "The rule will be created without GeoIP matching."
+                "GeoIP filtering for rule '{}' (country: {}) is not yet implemented in the nftables engine. The rule will be created without GeoIP matching.".format(rule.name, rule.country)
             )
 
         for source, destination in rule.get_source_destinations():
@@ -182,10 +180,10 @@ class Engine(BaseEngine):
             action_cmd.extend(cmd_parts) # Add protocol, port, IPs first
 
             if rule.log:
-                action_cmd.extend(["log", "prefix", f"{rule.name[:24]}: "])
+                action_cmd.extend(["log", "prefix", "{}: ".format(rule.name[:24])])
 
             action_cmd.append(NFTABLES_ACTIONS[rule.action])
-            action_cmd += ["comment", f"\"{rule.name}\""] # Comment is now last
+            action_cmd += ["comment", "\"{}\"".format(rule.name)] # Comment is now last
 
             yield action_cmd
 
@@ -206,13 +204,12 @@ class Engine(BaseEngine):
         if nft_policy_action == "reject":
             nft_policy_action = "drop"
             warnings.warn(
-                f"Nftables backend: Default policy 'reject' for base chain '{nft_chain_name}' "
-                "is implemented as 'drop'. Use specific rules for 'reject' actions.",
+                "Nftables backend: Default policy 'reject' for base chain '{}' is implemented as 'drop'. Use specific rules for 'reject' actions.".format(nft_chain_name),
                 UserWarning,
             )
 
         chain_definition = (
-            f"{{ type filter hook {nft_chain_name} priority 0 ; policy {nft_policy_action} ; }}"
+            "{{ type filter hook {} priority 0 ; policy {} ; }}".format(nft_chain_name, nft_policy_action)
         )
 
         cmd = self._nft + [

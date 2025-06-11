@@ -65,7 +65,7 @@ class NftablesTestCase(unittest.TestCase):
         expected_normalized = [normalize(cmd) for cmd in expected_commands] # Expected are already without 'nft '
 
         self.assertEqual(len(actual_normalized), len(expected_normalized),
-                         f"Number of commands differ.\nActual: {actual_normalized}\nExpected: {expected_normalized}")
+                         "Number of commands differ.\nActual: {}\nExpected: {}".format(actual_normalized, expected_normalized))
 
         for i, actual_cmd in enumerate(actual_normalized):
             # For commands defining chains with policy, the order of elements within {} might vary
@@ -73,7 +73,7 @@ class NftablesTestCase(unittest.TestCase):
             # A more robust comparison might be needed if this becomes an issue.
             # For now, direct string comparison after normalization.
             self.assertEqual(actual_cmd, expected_normalized[i],
-                             f"Command {i+1} differs.\nActual:   {actual_cmd}\nExpected: {expected_normalized[i]}\n\nFull Actual:\n{actual_normalized}\n\nFull Expected:\n{expected_normalized}")
+                             "Command {} differs.\nActual:   {}\nExpected: {}\n\nFull Actual:\n{}\n\nFull Expected:\n{}".format(i+1, actual_cmd, expected_normalized[i], actual_normalized, expected_normalized))
 
 
 class TestNftablesEngine(NftablesTestCase):
