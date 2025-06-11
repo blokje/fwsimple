@@ -41,9 +41,11 @@ DIRECTION: Dict["TrafficDirection", str] = {"in": "IN", "out": "OUT", "forward":
 
 EXEC_IPTABLES = 1
 EXEC_PF = 2
+EXEC_NFTABLES = 3
 EXEC_MAP = {
     "iptables": EXEC_IPTABLES,
     "pf": EXEC_PF,
+    "nftables": EXEC_NFTABLES,
 }
 
 GLOBAL_ZONE_NAME = "global"
