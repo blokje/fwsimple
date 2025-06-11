@@ -85,7 +85,7 @@ rulesets = %%RULESETS_DIR%%
 engine = nftables
 
 [policy]
-in = discard
+in = reject
 out = accept
 forward = discard
 
@@ -110,17 +110,17 @@ forward = discard
             "add rule inet fwsimple input ct state invalid drop",
             "add rule inet fwsimple forward ct state invalid drop",
             "nft add rule inet fwsimple input ip version 4 icmp type echo-request accept comment \"\\\"[ICMP] Echo Request\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code fragmentation-needed accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code port-unreachable accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code host-unreachable accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 4 accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 3 accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 1 accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
             "nft add rule inet fwsimple input ip version 4 icmp type source-quench accept comment \"\\\"[ICMP] Source Quench (RFC 792)\\\"\"",
             "nft add rule inet fwsimple input ip version 6 meta l4proto ipv6-nonxt accept comment \"\\\"[IPv6] No next header RFC2460\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type packet-too-big accept comment \"\\\"[ICMPv6] Packet too big\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type time-exceeded accept comment \"\\\"[ICMPv6] Time exceeded\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-solicitation accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-advertisement accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-solicitation accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-advertisement accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 133 accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 134 accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 135 accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 136 accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type echo-request accept comment \"\\\"[ICMPv6] Echo Request\\\"\"",
 
             # Global zone creation (constants.GLOBAL_ZONE_NAME is 'global')
@@ -258,17 +258,17 @@ action = accept
             "nft add rule inet fwsimple input ct state invalid drop",
             "nft add rule inet fwsimple forward ct state invalid drop",
             "nft add rule inet fwsimple input ip version 4 icmp type echo-request accept comment \"\\\"[ICMP] Echo Request\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code fragmentation-needed accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code port-unreachable accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code host-unreachable accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 4 accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 3 accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 1 accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
             "nft add rule inet fwsimple input ip version 4 icmp type source-quench accept comment \"\\\"[ICMP] Source Quench (RFC 792)\\\"\"",
             "nft add rule inet fwsimple input ip version 6 meta l4proto ipv6-nonxt accept comment \"\\\"[IPv6] No next header RFC2460\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type packet-too-big accept comment \"\\\"[ICMPv6] Packet too big\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type time-exceeded accept comment \"\\\"[ICMPv6] Time exceeded\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-solicitation accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-advertisement accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-solicitation accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-advertisement accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 133 accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 134 accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 135 accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 136 accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type echo-request accept comment \"\\\"[ICMPv6] Echo Request\\\"\"",
 
             # 2. Zone Creation
@@ -353,17 +353,17 @@ vpn_users = tun0
             "nft add rule inet fwsimple input ct state invalid drop",
             "nft add rule inet fwsimple forward ct state invalid drop",
             "nft add rule inet fwsimple input ip version 4 icmp type echo-request accept comment \"\\\"[ICMP] Echo Request\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code fragmentation-needed accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code port-unreachable accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
-            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code host-unreachable accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 4 accept comment \"\\\"[ICMP] Fragmentation needed\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 3 accept comment \"\\\"[ICMP] Port unreachable\\\"\"",
+            "nft add rule inet fwsimple input ip version 4 icmp type destination-unreachable code 1 accept comment \"\\\"[ICMP] Host unreachable\\\"\"",
             "nft add rule inet fwsimple input ip version 4 icmp type source-quench accept comment \"\\\"[ICMP] Source Quench (RFC 792)\\\"\"",
             "nft add rule inet fwsimple input ip version 6 meta l4proto ipv6-nonxt accept comment \"\\\"[IPv6] No next header RFC2460\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type packet-too-big accept comment \"\\\"[ICMPv6] Packet too big\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type time-exceeded accept comment \"\\\"[ICMPv6] Time exceeded\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-solicitation accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type router-advertisement accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-solicitation accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
-            "nft add rule inet fwsimple input ip version 6 icmpv6 type neighbor-advertisement accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 133 accept comment \"\\\"[ICMPv6] Router sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 134 accept comment \"\\\"[ICMPv6] Router advertisement\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 135 accept comment \"\\\"[ICMPv6] Neighbor sollicitation\\\"\"",
+            "nft add rule inet fwsimple input ip version 6 icmpv6 type 136 accept comment \"\\\"[ICMPv6] Neighbor advertisement\\\"\"",
             "nft add rule inet fwsimple input ip version 6 icmpv6 type echo-request accept comment \"\\\"[ICMPv6] Echo Request\\\"\"",
 
             # 2. Zone Creation

@@ -67,9 +67,9 @@ class Engine(BaseEngine):
         # IPv4 ICMP sane defaults
         ipv4_icmp_rules = [
             (["ip", "version", "4", "icmp", "type", "echo-request", "accept"], "\"[ICMP] Echo Request\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "fragmentation-needed", "accept"], "\"[ICMP] Fragmentation needed\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "port-unreachable", "accept"], "\"[ICMP] Port unreachable\""),
-            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "host-unreachable", "accept"], "\"[ICMP] Host unreachable\""),
+            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "4", "accept"], "\"[ICMP] Fragmentation needed\""),
+            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "3", "accept"], "\"[ICMP] Port unreachable\""),
+            (["ip", "version", "4", "icmp", "type", "destination-unreachable", "code", "1", "accept"], "\"[ICMP] Host unreachable\""),
             (["ip", "version", "4", "icmp", "type", "source-quench", "accept"], "\"[ICMP] Source Quench (RFC 792)\""),
         ]
         for rule_parts, comment in ipv4_icmp_rules:
@@ -80,10 +80,10 @@ class Engine(BaseEngine):
             (["ip", "version", "6", "meta", "l4proto", "ipv6-nonxt", "accept"], "\"[IPv6] No next header RFC2460\""),
             (["ip", "version", "6", "icmpv6", "type", "packet-too-big", "accept"], "\"[ICMPv6] Packet too big\""),
             (["ip", "version", "6", "icmpv6", "type", "time-exceeded", "accept"], "\"[ICMPv6] Time exceeded\""),
-            (["ip", "version", "6", "icmpv6", "type", "router-solicitation", "accept"], "\"[ICMPv6] Router sollicitation\""),
-            (["ip", "version", "6", "icmpv6", "type", "router-advertisement", "accept"], "\"[ICMPv6] Router advertisement\""),
-            (["ip", "version", "6", "icmpv6", "type", "neighbor-solicitation", "accept"], "\"[ICMPv6] Neighbor sollicitation\""),
-            (["ip", "version", "6", "icmpv6", "type", "neighbor-advertisement", "accept"], "\"[ICMPv6] Neighbor advertisement\""),
+            (["ip", "version", "6", "icmpv6", "type", "133", "accept"], "\"[ICMPv6] Router sollicitation\""),
+            (["ip", "version", "6", "icmpv6", "type", "134", "accept"], "\"[ICMPv6] Router advertisement\""),
+            (["ip", "version", "6", "icmpv6", "type", "135", "accept"], "\"[ICMPv6] Neighbor sollicitation\""),
+            (["ip", "version", "6", "icmpv6", "type", "136", "accept"], "\"[ICMPv6] Neighbor advertisement\""),
             (["ip", "version", "6", "icmpv6", "type", "echo-request", "accept"], "\"[ICMPv6] Echo Request\""),
         ]
         for rule_parts, comment in ipv6_rules:
@@ -201,6 +201,14 @@ class Engine(BaseEngine):
         if not nft_policy_action:
             # This should not happen with valid FilterAction
             return
+
+        if nft_policy_action == "reject":
+            nft_policy_action = "drop"
+            warnings.warn(
+                f"Nftables backend: Default policy 'reject' for base chain '{nft_chain_name}' "
+                "is implemented as 'drop'. Use specific rules for 'reject' actions.",
+                UserWarning,
+            )
 
         chain_definition = (
             f"{{ type filter hook {nft_chain_name} priority 0 ; policy {nft_policy_action} ; }}"
