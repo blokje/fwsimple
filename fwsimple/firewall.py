@@ -119,12 +119,8 @@ class Firewall:
 
     def get_default_policy(self, direction: str) -> "FilterAction":
         policy = self.config.get("policy", direction)
-        # Allow "drop" as a valid policy, often synonymous with "discard" for default policies
         if policy not in ["accept", "reject", "discard", "drop"]:
             raise Exception(
                 "Policy invalid '{0}' not allowed. Accepted values: accept, reject, discard, drop".format(policy)
             )
-        # If "drop" should be treated as "discard" internally by fwsimple at this stage,
-        # you could add: if policy == "drop": policy = "discard"
-        # For now, just allowing it as a valid input string.
         return cast("FilterAction", policy)
