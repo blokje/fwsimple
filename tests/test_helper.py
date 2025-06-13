@@ -6,13 +6,12 @@ import io
 import sys
 from typing import Dict, List
 
-# Adjust path to import fwsimple from the parent directory
-# This ensures that fwsimple is importable when tests are run.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fwsimple.firewall import Firewall
 
 class EngineTestCaseBase(unittest.TestCase):
     engine_name_for_firewall_init = None # Subclasses can override this
+    default_engine_in_config = 'OVERRIDE_ME_IN_SUBCLASS' # e.g., 'nftables' or 'iptables'
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -23,26 +22,23 @@ class EngineTestCaseBase(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     def _get_engine_specific_firewall_args(self) -> Dict:
-        """
-        Returns engine-specific arguments for Firewall constructor.
-        """
         if self.engine_name_for_firewall_init:
             return {'engine_name': self.engine_name_for_firewall_init}
         return {}
 
     def _process_dry_run_output(self, output_lines: List[str]) -> List[str]:
-        """
-        Allows subclasses to specifically process the raw output lines.
-        Default is to return lines that are not empty after stripping.
-        """
         return [line for line in output_lines if line.strip()]
 
     def _run_fwsimple_dry_run(self, config_content: str, rules_files: Dict[str, str]) -> List[str]:
         config_file_path = os.path.join(self.temp_dir, 'test_fwsimple.cfg')
-        config_content = config_content.replace('%%RULESETS_DIR%%', self.rules_dir)
+        # Ensure rules_dir is correctly substituted.
+        config_content_processed = config_content.replace('%%RULESETS_DIR%%', self.rules_dir)
+
+        # Substitute engine placeholder if present
+        config_content_processed = config_content_processed.replace('%%ENGINE_TYPE%%', self.default_engine_in_config)
 
         with open(config_file_path, 'w') as f:
-            f.write(config_content)
+            f.write(config_content_processed)
 
         for file_name, content in rules_files.items():
             with open(os.path.join(self.rules_dir, file_name), 'w') as f:
@@ -63,19 +59,14 @@ class EngineTestCaseBase(unittest.TestCase):
         if not output:
             return []
 
-        # Process output using a potentially overridden method
         processed_output = self._process_dry_run_output(output.splitlines())
         return processed_output
 
     def _normalize_command(self, cmd_str: str) -> str:
-        """
-        Abstract method for subclasses to implement command normalization.
-        """
         raise NotImplementedError("Subclasses must implement _normalize_command")
 
     def assert_commands_equal(self, actual_commands: List[str], expected_commands: List[str]):
         actual_normalized = [self._normalize_command(cmd) for cmd in actual_commands]
-        # Normalize expected commands as well, as they might be written with prefixes for readability in tests
         expected_normalized = [self._normalize_command(cmd) for cmd in expected_commands]
 
         self.assertEqual(len(actual_normalized), len(expected_normalized),
@@ -84,3 +75,134 @@ class EngineTestCaseBase(unittest.TestCase):
         for i, actual_cmd in enumerate(actual_normalized):
             self.assertEqual(actual_cmd, expected_normalized[i],
                              "Command {0} differs.\nActual:   {1}\nExpected: {2}\n\nFull Actual:\n{3}\n\nFull Expected:\n{4}".format(i+1, actual_cmd, expected_normalized[i], actual_normalized, expected_normalized))
+
+    # --- Scenario Helper Methods ---
+
+    def _get_config_basic_init(self) -> str:
+        """Scenario 1: Basic initialization, default policies, no rules, global zone only."""
+        return """
+[fwsimple]
+rulesets = %%RULESETS_DIR%%
+engine = %%ENGINE_TYPE%%
+[policy]
+in = reject
+out = accept
+forward = drop
+[zones]
+; No specific zones, global is implicit
+"""
+
+    def _get_config_one_zone(self, zone_name="lan", zone_def="eth0") -> str:
+        """Common config part for scenarios needing one defined zone."""
+        return """
+[fwsimple]
+rulesets = %%RULESETS_DIR%%
+engine = %%ENGINE_TYPE%%
+[policy]
+in = reject
+out = accept
+forward = drop
+[zones]
+{zone_name} = {zone_def}
+""".format(zone_name=zone_name, zone_def=zone_def)
+
+    def _get_rules_tcp_allow(self, zone_name="lan", port="22", source="192.168.1.100/32") -> Dict[str, str]:
+        """Scenario 2: Simple TCP Allow Rule."""
+        return {
+            "tcp_allow.rule": """
+[allow_ssh_from_host]
+zone = {zone_name}
+direction = in
+protocol = tcp
+port = {port}
+source = {source}
+action = accept
+""".format(zone_name=zone_name, port=port, source=source)
+        }
+
+    def _get_rules_udp_deny(self, zone_name="lan", port="53", destination="8.8.8.8/32", action="discard") -> Dict[str, str]:
+        """Scenario 3: Simple UDP Deny Rule."""
+        return {
+            "udp_deny.rule": """
+[deny_dns_to_external]
+zone = {zone_name}
+direction = out
+protocol = udp
+port = {port}
+destination = {destination}
+action = {action}
+""".format(zone_name=zone_name, port=port, destination=destination, action=action)
+        }
+
+    def _get_rules_logged_rule(self, zone_name="lan", port="22", source="192.168.1.100/32", action="accept") -> Dict[str, str]:
+        """Scenario 4: Rule with Logging."""
+        return {
+            "logged_rule.rule": """
+[logged_ssh_rule]
+zone = {zone_name}
+direction = in
+protocol = tcp
+port = {port}
+source = {source}
+action = {action}
+log = true
+""".format(zone_name=zone_name, port=port, source=source, action=action)
+        }
+
+    def _get_rules_multiple_ports(self, zone_name="lan", ports="80,443,8080", action="accept") -> Dict[str, str]:
+        """Scenario 5: Rule with Multiple Ports."""
+        return {
+            "multi_port.rule": """
+[allow_web_ports]
+zone = {zone_name}
+direction = in
+protocol = tcp
+port = {ports}
+action = {action}
+""".format(zone_name=zone_name, ports=ports, action=action)
+        }
+
+    def _get_rules_port_range(self, zone_name="lan", port_range="1000-1024", action="accept") -> Dict[str, str]:
+        """Scenario 6: Rule with Port Range."""
+        return {
+            "port_range.rule": """
+[allow_custom_range]
+zone = {zone_name}
+direction = in
+protocol = tcp
+port = {port_range}
+action = {action}
+""".format(zone_name=zone_name, port_range=port_range, action=action)
+        }
+
+    def _get_rules_ipv6_source_allow(self, zone_name="lan", port="22", source="2001:db8:cafe::100/128") -> Dict[str, str]:
+        """Scenario 7: IPv6 Rule (source)."""
+        return {
+            "ipv6_allow.rule": """
+[allow_ipv6_ssh]
+zone = {zone_name}
+direction = in
+protocol = tcp
+port = {port}
+source = {source}
+action = accept
+""".format(zone_name=zone_name, port=port, source=source)
+        }
+
+    def _get_config_multiple_zones(self) -> str:
+        """Scenario 8: Multiple Zones defined for zone expression generation testing."""
+        return """
+[fwsimple]
+rulesets = %%RULESETS_DIR%%
+engine = %%ENGINE_TYPE%%
+[policy]
+in = discard
+out = accept
+forward = discard
+[zones]
+public = eth0
+private_lan = eth1:192.168.1.0/24
+guest_wifi = eth1:192.168.2.0/24
+vpn_users = tun0
+dmz_ipv6 = eth2:2001:db8:dmz::/64
+"""
