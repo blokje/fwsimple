@@ -4,6 +4,7 @@ from typing import List, Optional, TYPE_CHECKING, Union
 from fwsimple import lib, constants
 
 import ipaddress
+import warnings
 
 if TYPE_CHECKING:
     from .firewall import Firewall
@@ -32,11 +33,12 @@ class Zone(lib.FirewallExecution):
             self.add_expression(expression)
 
     def add_expression(self, expression: Optional[str]) -> None:
+        # import warnings # This is now at the top of the file
         subexpression = ZoneExpression(self._firewall, self, expression)
         if self._firewall.has_zone_expression(subexpression):
-            raise Warning(
-                "Duplicate zone definition detected (zone=%s, expression=%s)"
-                % (self.name, subexpression)
+            warnings.warn(
+                "Duplicate zone definition detected (zone={0}, expression={1})".format(self.name, subexpression),
+                Warning # Specify the category of warning
             )
         self.expressions.append(subexpression)
 
@@ -105,9 +107,10 @@ class ZoneExpression(lib.FirewallExecution):
         return False
 
     def __ne__(self, other: object) -> bool:
-        if isinstance(other, ZoneExpression):
-            return (self.interface != other.interface) or (self.source != other.source)
-        return False
+        if not isinstance(other, ZoneExpression):
+            return True # Different types are not equal
+        # If they are the same type, then compare attributes
+        return (self.interface != other.interface) or (self.source != other.source)
 
     def __lt__(self, other: object) -> bool:
         """Check if I should be smaller than the other"""

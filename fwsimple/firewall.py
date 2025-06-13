@@ -22,7 +22,7 @@ class Firewall:
         self.rules: List["Filter"] = []
         self.zones: List["Zone"] = []
         # self.ruleset_location: Optional[str] = None
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         self.exec_type: Optional[int] = None
         self._dry_run = dry_run
 
@@ -87,9 +87,9 @@ class Firewall:
         import os
         from . import rules
 
-        ruleset = configparser.SafeConfigParser(defaults={"type": "filter"})
+        ruleset = configparser.ConfigParser(defaults={"type": "filter"})
         with codecs.open(ruleset_file, "rb", encoding="utf-8") as ruleset_fp:
-            ruleset.readfp(ruleset_fp)
+            ruleset.read_file(ruleset_fp)
 
         for rule in ruleset.sections():
             ruletype = ruleset.get(rule, "type")
@@ -119,8 +119,12 @@ class Firewall:
 
     def get_default_policy(self, direction: str) -> "FilterAction":
         policy = self.config.get("policy", direction)
-        if policy not in ["accept", "reject", "discard"]:
+        # Allow "drop" as a valid policy, often synonymous with "discard" for default policies
+        if policy not in ["accept", "reject", "discard", "drop"]:
             raise Exception(
-                f"Policy invalid '{policy}' not allowed. Accepted values: accept, reject, discard"
+                "Policy invalid '{0}' not allowed. Accepted values: accept, reject, discard, drop".format(policy)
             )
+        # If "drop" should be treated as "discard" internally by fwsimple at this stage,
+        # you could add: if policy == "drop": policy = "discard"
+        # For now, just allowing it as a valid input string.
         return cast("FilterAction", policy)

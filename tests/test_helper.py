@@ -10,7 +10,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from fwsimple.firewall import Firewall
 
 class EngineTestCaseBase(unittest.TestCase):
-    engine_name_for_firewall_init = None # Subclasses can override this
     default_engine_in_config = 'OVERRIDE_ME_IN_SUBCLASS' # e.g., 'nftables' or 'iptables'
 
     def setUp(self):
@@ -22,8 +21,11 @@ class EngineTestCaseBase(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     def _get_engine_specific_firewall_args(self) -> Dict:
-        if self.engine_name_for_firewall_init:
-            return {'engine_name': self.engine_name_for_firewall_init}
+        """
+        Returns engine-specific arguments for Firewall constructor.
+        Currently, no engine-specific args are passed directly to __init__.
+        Engine is determined by config file content.
+        """
         return {}
 
     def _process_dry_run_output(self, output_lines: List[str]) -> List[str]:
@@ -136,17 +138,21 @@ action = {action}
 
     def _get_rules_logged_rule(self, zone_name="lan", port="22", source="192.168.1.100/32", action="accept") -> Dict[str, str]:
         """Scenario 4: Rule with Logging."""
-        return {
-            "logged_rule.rule": """
+        rule_content = """
 [logged_ssh_rule]
 zone = {zone_name}
 direction = in
 protocol = tcp
 port = {port}
-source = {source}
 action = {action}
 log = true
-""".format(zone_name=zone_name, port=port, source=source, action=action)
+""".format(zone_name=zone_name, port=port, action=action)
+
+        if source and source.lower() != "any":
+            rule_content += "\nsource = {0}".format(source)
+
+        return {
+            "logged_rule.rule": rule_content
         }
 
     def _get_rules_multiple_ports(self, zone_name="lan", ports="80,443,8080", action="accept") -> Dict[str, str]:

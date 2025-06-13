@@ -14,6 +14,10 @@ from fwsimple import constants
 from fwsimple.zone import Zone, ZoneExpression
 from fwsimple.rules.filter import Filter
 
+# Ensure mockengine is available for test_firewall.py
+if 'mockengine' not in constants.EXEC_MAP:
+    constants.EXEC_MAP['mockengine'] = 99 # Assign a dummy integer ID
+
 # Mock Engine for Firewall tests
 class MockEngine:
     def __init__(self, firewall_instance):

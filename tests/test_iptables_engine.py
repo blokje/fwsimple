@@ -13,7 +13,7 @@ from fwsimple import constants
 from tests.test_helper import EngineTestCaseBase
 
 class IptablesTestCase(EngineTestCaseBase):
-    engine_name_for_firewall_init = 'iptables'
+    default_engine_in_config = 'iptables'
 
     def _normalize_command(self, cmd_str: str) -> str:
         # iptables specific normalization

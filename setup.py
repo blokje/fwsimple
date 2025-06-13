@@ -10,12 +10,18 @@ git_version = (
     .decode("ASCII")
 )
 
+import sys
+
+install_reqs = []
+if sys.version_info < (3, 3):
+    install_reqs.append("ipaddress")
+
 config = {
     "description": "fwsimple",
     "author": fwsimple.__author__,
     "author_email": fwsimple.__email__,
     "version": fwsimple.__version__,
-    "install_requires": ["ipaddress"],
+    "install_requires": install_reqs, # Use the conditional list
     "packages": ["fwsimple", "fwsimple.rules", "fwsimple.engines"],
     "name": "fwsimple",
     "entry_points": {
