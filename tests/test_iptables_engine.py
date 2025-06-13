@@ -270,9 +270,9 @@ class TestIptablesEngine(IptablesTestCase): # Renamed from TestIptablesEngineBas
             "ip6tables -A OUTPUT -j ZONE_GLOBAL_OUTPUT",
             "ip6tables -A FORWARD -j ZONE_GLOBAL_FORWARD",
             # private_lan and guest_wifi have no IPv6 component
-            "ip6tables -A INPUT -i eth2 -s 2001:db8:dmz::/64 -j ZONE_DMZ_IPV6_INPUT",
-            "ip6tables -A OUTPUT -o eth2 -d 2001:db8:dmz::/64 -j ZONE_DMZ_IPV6_OUTPUT",
-            "ip6tables -A FORWARD -i eth2 -s 2001:db8:dmz::/64 -j ZONE_DMZ_IPV6_FORWARD",
+            "ip6tables -A INPUT -i eth2 -s 2001:db8:d320::/64 -j ZONE_DMZ_IPV6_INPUT",
+            "ip6tables -A OUTPUT -o eth2 -d 2001:db8:d320::/64 -j ZONE_DMZ_IPV6_OUTPUT",
+            "ip6tables -A FORWARD -i eth2 -s 2001:db8:d320::/64 -j ZONE_DMZ_IPV6_FORWARD",
             "ip6tables -A INPUT -i eth0 -j ZONE_PUBLIC_INPUT",
             "ip6tables -A OUTPUT -o eth0 -j ZONE_PUBLIC_OUTPUT",
             "ip6tables -A FORWARD -i eth0 -j ZONE_PUBLIC_FORWARD",

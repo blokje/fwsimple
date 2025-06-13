@@ -210,5 +210,5 @@ public = eth0
 private_lan = eth1:192.168.1.0/24
 guest_wifi = eth1:192.168.2.0/24
 vpn_users = tun0
-dmz_ipv6 = eth2:2001:db8:dmz::/64
+dmz_ipv6 = eth2:2001:db8:d320::/64
 """
