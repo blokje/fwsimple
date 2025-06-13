@@ -158,7 +158,7 @@ direction = in
 
 [drop_all_else]
 zone = lan
-action = drop
+    action = discard  # Changed from drop to discard
 direction = in
 """
         self._create_rule_file(rule_content, "myrules.rule")
@@ -202,7 +202,7 @@ lan = eth0
 """.format(rules_dir=self.rules_dir)
         config_path = self._create_config_file(config_content)
 
-        with self.assertRaisesRegex(Exception, "Error in bad.rule::bad_rule:.*action.*not understood"):
+        with self.assertRaisesRegex(Exception, "Action '.*' is not understood! \(bad.rule::bad_rule\)"):
             Firewall(configfile=config_path)
 
     def test_get_default_policy(self):
