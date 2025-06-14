@@ -30,9 +30,9 @@ class Engine(BaseEngine):
 
         return "{ %s }" % ", ".join(ports)
 
-    def init(self) -> Iterable[List[str]]:
+    def init(self, input_policy: str, output_policy: str, forward_policy: str) -> Iterable[List[str]]:
         """Initialize the firewall, flush existing and add
-        default tables and chains"""
+        default tables and chains with specified policies"""
         self._nft = ["nft"]
 
         # Flush existing ruleset
@@ -41,12 +41,21 @@ class Engine(BaseEngine):
         # Create inet table for fwsimple
         yield self._nft + ["add", "table", "inet", "fwsimple"]
 
-        # Create base chains for inet table
-        # Default policy is accept, can be changed later by set_default_policy
+        # Create base chains for inet table with specified policies
+        # Map internal policy names to nftables actions
+        nft_input_policy = NFTABLES_ACTIONS.get(input_policy, "drop")
+        if nft_input_policy == "reject": nft_input_policy = "drop"
+
+        nft_output_policy = NFTABLES_ACTIONS.get(output_policy, "drop")
+        if nft_output_policy == "reject": nft_output_policy = "drop"
+
+        nft_forward_policy = NFTABLES_ACTIONS.get(forward_policy, "drop")
+        if nft_forward_policy == "reject": nft_forward_policy = "drop"
+
         base_chains = {
-            "input": "{ type filter hook input priority 0 ; policy accept ; }",
-            "forward": "{ type filter hook forward priority 0 ; policy accept ; }",
-            "output": "{ type filter hook output priority 0 ; policy accept ; }",
+            "input": f"{{ type filter hook input priority 0 ; policy {nft_input_policy} ; }}",
+            "forward": f"{{ type filter hook forward priority 0 ; policy {nft_forward_policy} ; }}",
+            "output": f"{{ type filter hook output priority 0 ; policy {nft_output_policy} ; }}",
         }
 
         for chain_name, chain_config in base_chains.items():
@@ -190,29 +199,34 @@ class Engine(BaseEngine):
     def set_default_policy(
         self, direction: "TrafficDirection", policy: "FilterAction"
     ) -> Iterable[List[str]]:
-        """Set default firewall policy for a base chain."""
+        """Set default firewall policy for a base chain.
+
+        For nftables, the chain's actual base policy (e.g., drop) is set in init().
+        This method is responsible for adding a final 'reject' rule if the
+        configured default policy was 'reject', as 'reject' is not a valid
+        base policy for a chain itself.
+        """
         nft_chain_name = self.NFTABLES_BASE_CHAINS.get(direction)
         if not nft_chain_name:
             # This should not happen with valid TrafficDirection
+            yield from ()
             return
 
-        nft_policy_action = NFTABLES_ACTIONS.get(policy)
-        if not nft_policy_action:
-            # This should not happen with valid FilterAction
-            return
-
-        if nft_policy_action == "reject":
-            nft_policy_action = "drop"
-            warnings.warn(
-                "Nftables backend: Default policy 'reject' for base chain '{}' is implemented as 'drop'. Use specific rules for 'reject' actions.".format(nft_chain_name),
-                UserWarning,
-            )
-
-        chain_definition = (
-            "{{ type filter hook {} priority 0 ; policy {} ; }}".format(nft_chain_name, nft_policy_action)
-        )
-
-        cmd = self._nft + [
-            "add", "chain", "inet", "fwsimple", nft_chain_name, chain_definition
-        ]
-        yield cmd
+        if policy == "reject":
+            # The base chain policy will have been set to 'drop' in init().
+            # Add a final rule to implement the 'reject' behavior.
+            comment_str = f"Default REJECT policy for {nft_chain_name}"
+            yield self._nft + [
+                "add",
+                "rule",
+                "inet",
+                "fwsimple",
+                nft_chain_name,
+                "reject",
+                "comment",
+                comment_str,
+            ]
+        else:
+            # For other policies (accept, drop/discard), the chain's base
+            # policy set in init() is sufficient.
+            yield from ()

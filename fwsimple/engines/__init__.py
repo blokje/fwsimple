@@ -65,7 +65,22 @@ class BaseEngine:
         ):
             yield ["/etc/fwsimple/pre-fwsimple"]
 
-        yield from self.init()
+        # Determine engine type for conditional init call
+        is_nftables_engine = self.firewall.config.get("fwsimple", "engine") == "nftables"
+
+        if is_nftables_engine:
+            # Fetch policies for nftables init
+            # The keys for get_default_policy are 'input', 'output', 'forward'
+            input_policy = self.firewall.get_default_policy("input")
+            output_policy = self.firewall.get_default_policy("output")
+            forward_policy = self.firewall.get_default_policy("forward")
+            # The type checker might complain here if it knows BaseEngine.init takes no args.
+            # However, Python's polymorphism allows this at runtime.
+            # Consider adding # type: ignore if static analysis becomes an issue.
+            yield from self.init(input_policy=input_policy, output_policy=output_policy, forward_policy=forward_policy) # type: ignore
+        else:
+            yield from self.init()
+
         for zone in self.firewall.zones:
             yield from self.zone_create(zone)
 
