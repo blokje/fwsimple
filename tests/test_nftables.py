@@ -8,7 +8,7 @@ import unittest
 from typing import Dict, List
 
 # Adjust path to import fwsimple from the parent directory
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fwsimple.firewall import Firewall
 from fwsimple import constants
 
