@@ -36,6 +36,8 @@ class Engine(BaseEngine):
 
     @property
     def _iptables_supports_lockx(self) -> bool:
+        if self.firewall._dry_run:
+            return False
         return self.do_exec(["iptables", "-w", "-L", "-n"], False) == 0
 
     #
