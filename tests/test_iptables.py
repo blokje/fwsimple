@@ -233,9 +233,9 @@ log = true"""
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
             "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "iptables -A INPUT -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j IN_dmz",
-            "iptables -A OUTPUT -o eth2 -d 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j OUT_dmz",
-            "iptables -A FORWARD -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j FWD_dmz",
+            "iptables -A INPUT -m comment --comment \"Zone dmz\" -i eth2 -s 10.0.1.0/24 -j IN_dmz",
+            "iptables -A OUTPUT -m comment --comment \"Zone dmz\" -o eth2 -d 10.0.1.0/24 -j OUT_dmz",
+            "iptables -A FORWARD -m comment --comment \"Zone dmz\" -i eth2 -s 10.0.1.0/24 -j FWD_dmz",
             "iptables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext", "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext",
             "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext", "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext",
             "iptables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext", "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext",
@@ -339,17 +339,17 @@ vpn_users = tun0
             "iptables -N OUT_vpn_users", "ip6tables -N OUT_vpn_users",
             "iptables -N FWD_vpn_users", "ip6tables -N FWD_vpn_users",
 
-            # 3. Zone Expression Creation (24 commands - Order: global, guest_wifi, private_lan, public, vpn_users)
-            # This section's order is confirmed to be correct (different from chain creation) and remains unchanged.
+            # 3. Zone Expression Creation (24 commands - Order: global, private_lan, guest_wifi, public, vpn_users)
+            # Corrected order for private_lan and guest_wifi expressions.
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
             "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "iptables -A INPUT -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j IN_guest_wifi",
-            "iptables -A OUTPUT -o eth1 -d 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j OUT_guest_wifi",
-            "iptables -A FORWARD -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j FWD_guest_wifi",
-            "iptables -A INPUT -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j IN_private_lan",
+            "iptables -A INPUT -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j IN_private_lan", # private_lan before guest_wifi
             "iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j OUT_private_lan",
             "iptables -A FORWARD -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j FWD_private_lan",
+            "iptables -A INPUT -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j IN_guest_wifi", # guest_wifi after private_lan
+            "iptables -A OUTPUT -o eth1 -d 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j OUT_guest_wifi",
+            "iptables -A FORWARD -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j FWD_guest_wifi",
             "iptables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public", "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public",
             "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public", "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public",
             "iptables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public", "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public",
