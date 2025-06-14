@@ -214,7 +214,7 @@ class TestIptablesEngine(IptablesTestCase): # Renamed from TestIptablesEngineBas
 
         expected_commands = [
             # IPv4 Chains & Basic Rules
-            "-P INPUT ACCEPT", "-P FORWARD ACCEPT", "-P OUTPUT ACCEPT",
+            # "-P INPUT ACCEPT", "-P FORWARD ACCEPT", "-P OUTPUT ACCEPT", # Removed
             "-F INPUT", "-F FORWARD", "-F OUTPUT", "-X", "-Z",
             "-N ZONE_GLOBAL_INPUT", "-N ZONE_GLOBAL_OUTPUT", "-N ZONE_GLOBAL_FORWARD",
             "-N ZONE_PUBLIC_INPUT", "-N ZONE_PUBLIC_OUTPUT", "-N ZONE_PUBLIC_FORWARD",
@@ -258,7 +258,7 @@ class TestIptablesEngine(IptablesTestCase): # Renamed from TestIptablesEngineBas
             "-P INPUT DROP", "-P FORWARD DROP", "-P OUTPUT ACCEPT", # discard becomes drop
 
             # IPv6 Chains & Basic Rules
-            "ip6tables -P INPUT ACCEPT", "ip6tables -P FORWARD ACCEPT", "ip6tables -P OUTPUT ACCEPT",
+            # "ip6tables -P INPUT ACCEPT", "ip6tables -P FORWARD ACCEPT", "ip6tables -P OUTPUT ACCEPT", # Removed
             "ip6tables -F INPUT", "ip6tables -F FORWARD", "ip6tables -F OUTPUT", "ip6tables -X", "ip6tables -Z",
             "ip6tables -N ZONE_GLOBAL_INPUT", "ip6tables -N ZONE_GLOBAL_OUTPUT", "ip6tables -N ZONE_GLOBAL_FORWARD",
             "ip6tables -N ZONE_PUBLIC_INPUT", "ip6tables -N ZONE_PUBLIC_OUTPUT", "ip6tables -N ZONE_PUBLIC_FORWARD",

@@ -132,8 +132,8 @@ class Engine(BaseEngine):
     ) -> Iterable[List[str]]:
         """Set default firewall policy"""
         chain = constants.IPTABLES_DIRECTION[direction]
-        action = constants.IPTABLES_ACTIONS[policy]
-        cmd = ["-A", chain, "-j", action]
+        action = constants.IPTABLES_ACTIONS[policy] # This will now correctly find "DROP" if policy is "drop"
+        cmd = ["-P", chain, action] # <--- Corrected to use -P for setting chain policy
         yield from self.__iptables(cmd)
 
     def __iptables(

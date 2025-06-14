@@ -50,7 +50,7 @@ EXEC_MAP = {
 
 GLOBAL_ZONE_NAME = "global"
 
-IPTABLES_ACTIONS = {"accept": "ACCEPT", "reject": "REJECT", "discard": "DROP"}
+IPTABLES_ACTIONS = {"accept": "ACCEPT", "reject": "REJECT", "discard": "DROP", "drop": "DROP"}
 IPTABLES_DIRECTION = {"in": "INPUT", "out": "OUTPUT", "forward": "FORWARD"}
 
 PROTO_IPV4 = 1

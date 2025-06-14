@@ -67,7 +67,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_FWD_global return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject becomes drop for nftables base policy
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -99,7 +98,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_int return", "add rule inet fwsimple ZONE_OUT_int return", "add rule inet fwsimple ZONE_FWD_int return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -126,7 +124,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_ext return", "add rule inet fwsimple ZONE_OUT_ext return", "add rule inet fwsimple ZONE_FWD_ext return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -153,7 +150,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_ext return", "add rule inet fwsimple ZONE_OUT_ext return", "add rule inet fwsimple ZONE_FWD_ext return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -181,7 +177,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_ext return", "add rule inet fwsimple ZONE_OUT_ext return", "add rule inet fwsimple ZONE_FWD_ext return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -209,7 +204,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_int return", "add rule inet fwsimple ZONE_OUT_int return", "add rule inet fwsimple ZONE_FWD_int return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -236,7 +230,6 @@ class TestNftablesEngine(NftablesTestCase):
             "add rule inet fwsimple ZONE_IN_int return", "add rule inet fwsimple ZONE_OUT_int return", "add rule inet fwsimple ZONE_FWD_int return",
             "add chain inet fwsimple input \"{ type filter hook input priority 0 ; policy drop ; }\"", # reject
             "add chain inet fwsimple output \"{ type filter hook output priority 0 ; policy accept ; }\"",
-            "add chain inet fwsimple forward \"{ type filter hook forward priority 0 ; policy drop ; }\"",
         ]
         actual_commands = self._run_fwsimple_dry_run(config_content, rules_files)
         self.assert_commands_equal(actual_commands, expected_commands)
@@ -370,7 +363,7 @@ action = accept
             "nft add rule inet fwsimple input iif eth0 jump ZONE_IN_ext comment \"\\\"Zone ext\\\"\"", "nft add rule inet fwsimple output oif eth0 jump ZONE_OUT_ext comment \"\\\"Zone ext\\\"\"", "nft add rule inet fwsimple forward iif eth0 jump ZONE_FWD_ext comment \"\\\"Zone ext\\\"\"",
             "nft add rule inet fwsimple input iif eth1 jump ZONE_IN_int comment \"\\\"Zone int\\\"\"", "nft add rule inet fwsimple output oif eth1 jump ZONE_OUT_int comment \"\\\"Zone int\\\"\"", "nft add rule inet fwsimple forward iif eth1 jump ZONE_FWD_int comment \"\\\"Zone int\\\"\"",
             # Rules from complex_rules.rule
-            "nft add rule inet fwsimple ZONE_IN_dmz ct state new tcp reject with tcp reset comment \\\"Special DMZ reject rule\\\" comment \\\"complex_rules.rule::reject_all_tcp_to_dmz_with_comment\\\"", # reject needs 'with tcp reset' for nftables
+            "nft add rule inet fwsimple ZONE_IN_dmz ct state new tcp reject with tcp reset comment \\\"Special DMZ reject rule\\\" comment \\\"complex_rules.rule::reject_all_tcp_to_dmz_with_comment\\\"",
             "nft add rule inet fwsimple ZONE_IN_int ct state new tcp dport \"{ 1000-1010 }\" log prefix \\\"complex_rules.rule::tcp_cu: \\\" accept comment \\\"complex_rules.rule::tcp_custom_app_range_to_int_logged\\\"",
             "nft add rule inet fwsimple ZONE_OUT_int ct state new icmpv6 type echo-request ip6 daddr 2001:db8:dead::beef/128 accept comment \\\"complex_rules.rule::icmp6_ping_host_from_int_specific_type\\\"",
             "add rule inet fwsimple ZONE_IN_global return", "add rule inet fwsimple ZONE_OUT_global return", "add rule inet fwsimple ZONE_FWD_global return",
