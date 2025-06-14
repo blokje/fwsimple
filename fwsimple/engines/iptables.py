@@ -50,30 +50,30 @@ class Engine(BaseEngine):
             yield from self.__iptables(cmd)
 
     def zone_expression_create(
-        self, expression: "ZoneExpression"
+        self, zone_expression: "ZoneExpression"
     ) -> Iterable[List[str]]:
         """Create expressions for the zones based on interface and optional source"""
         for direction in constants.DIRECTION:
             cmd = ["-A", constants.IPTABLES_DIRECTION[direction]]
 
-            if expression.interface:
+            if zone_expression.interface:
                 if direction == "out":
-                    cmd += ["-o", expression.interface]
-                    if expression.source:
-                        cmd += ["-d", str(expression.source)]
+                    cmd += ["-o", zone_expression.interface]
+                    if zone_expression.source:
+                        cmd += ["-d", str(zone_expression.source)]
                 else:
-                    cmd += ["-i", expression.interface]
-                    if expression.source:
-                        cmd += ["-s", str(expression.source)]
+                    cmd += ["-i", zone_expression.interface]
+                    if zone_expression.source:
+                        cmd += ["-s", str(zone_expression.source)]
 
-            cmd += ["-m", "comment", "--comment", "Zone %s" % expression._zone.name]
+            cmd += ["-m", "comment", "--comment", "Zone %s" % zone_expression._zone.name]
 
             cmd += [
                 "-j",
-                "%s_%s" % (constants.DIRECTION[direction], expression._zone.name),
+                "%s_%s" % (constants.DIRECTION[direction], zone_expression._zone.name),
             ]
 
-            yield from self.__iptables(cmd, expression.proto)
+            yield from self.__iptables(cmd, zone_expression.proto)
 
     def zone_close(self, zone: "Zone") -> Iterable[List[str]]:
         """Finish up the zones in iptables and ip6tables"""
