@@ -15,7 +15,8 @@ config = {
     "author": fwsimple.__author__,
     "author_email": fwsimple.__email__,
     "version": fwsimple.__version__,
-    "install_requires": ["ipaddress"],
+    "install_requires": ["ipaddress", "coverage", "pytest", "pytest-cov"],
+    "python_requires": ">=3.8",
     "packages": ["fwsimple", "fwsimple.rules", "fwsimple.engines"],
     "name": "fwsimple",
     "entry_points": {

@@ -22,7 +22,7 @@ class Firewall:
         self.rules: List["Filter"] = []
         self.zones: List["Zone"] = []
         # self.ruleset_location: Optional[str] = None
-        self.config = configparser.SafeConfigParser()
+        self.config = configparser.ConfigParser()
         self.exec_type: Optional[int] = None
         self._dry_run = dry_run
 
@@ -87,9 +87,9 @@ class Firewall:
         import os
         from . import rules
 
-        ruleset = configparser.SafeConfigParser(defaults={"type": "filter"})
+        ruleset = configparser.ConfigParser(defaults={"type": "filter"})
         with codecs.open(ruleset_file, "rb", encoding="utf-8") as ruleset_fp:
-            ruleset.readfp(ruleset_fp)
+            ruleset.read_file(ruleset_fp)
 
         for rule in ruleset.sections():
             ruletype = ruleset.get(rule, "type")
