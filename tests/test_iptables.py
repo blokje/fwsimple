@@ -178,88 +178,18 @@ int = eth1
 dmz = eth2:10.0.1.0/24
 """
         rules_files: Dict[str, str] = {
-            "test_rules.rule": """
-[tcp_ssh_from_host_to_int]
-zone = int
+            "simple_test_rule.rule": """[allow_ssh_on_ext]
+zone = ext
 direction = in
 protocol = tcp
 port = 22
-source = 192.168.1.100
 action = accept
-
-[tcp_web_ports_logged_to_ext]
-zone = ext
-direction = in
-protocol = tcp
-port = 80,443
-action = accept
-log = true
-
-[tcp_custom_app_range_to_int]
-zone = int
-direction = in
-protocol = tcp
-port = 1000-1010
-action = accept
-multiport = true
-
-[udp_dns_to_server_from_ext]
-zone = ext
-direction = out
-protocol = udp
-port = 53
-destination = 8.8.8.8
-action = accept
-
-[icmp_ping_from_int]
-zone = int
-direction = in
-protocol = icmp
-action = accept
-
-[reject_all_tcp_to_dmz]
-zone = dmz
-direction = in
-protocol = tcp
-action = reject
-
-[discard_udp_5000_to_ext]
-zone = ext
-direction = in
-protocol = udp
-port = 5000
-action = discard
-
-[tcp6_ssh_from_host_to_int]
-zone = int
-direction = in
-protocol = tcp
-port = 22
-source = 2001:db8:cafe:1::100
-action = accept
-
-[udp6_dns_to_server_from_ext]
-zone = ext
-direction = out
-protocol = udp
-port = 53
-destination = 2001:db8:feed::1
-action = accept
-log = true
-
-[icmp6_ping_host_from_int]
-zone = int
-direction = out
-protocol = icmpv6
-destination = 2001:db8:dead::beef
-action = accept
-"""
+log = true"""
         }
 
-        # Expected commands will need to be replaced with IPTables equivalents
+        # Expected commands for the simplified test case (110 commands)
         expected_commands = [
-            # 1. Init commands (31 commands)
-            # BASIC_IPTABLES_INIT (9 pairs = 18 commands)
+            # 1. Init Commands (31 commands)
             "iptables -F", "ip6tables -F",
             "iptables -X", "ip6tables -X",
             "iptables -Z", "ip6tables -Z",
@@ -269,13 +199,11 @@ action = accept
             "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP", "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
-            # BASIC_IP4TABLES_INIT (5 commands)
             "iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT -m comment --comment \"[ICMP] Echo Request\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/4 -j ACCEPT -m comment --comment \"[ICMP] Fragmentation needed\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/3 -j ACCEPT -m comment --comment \"[ICMP] Port unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/1 -j ACCEPT -m comment --comment \"[ICMP] Host unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 4 -j ACCEPT -m comment --comment \"[ICMP] Source Quench (RFC 792)\"",
-            # BASIC_IP6TABLES_INIT (8 commands)
             "ip6tables -A INPUT -p 59 -j ACCEPT -m comment --comment \"[IPv6] No next header RFC2460\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 2 -j ACCEPT -m comment --comment \"[ICMPv6] Packet too big\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 3 -j ACCEPT -m comment --comment \"[ICMPv6] Time exceeded\"",
@@ -285,72 +213,57 @@ action = accept
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 136 -j ACCEPT -m comment --comment \"[ICMPv6] Neighbor advertisement\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
-            # 2. Zone Creation (30 commands for global, guest_wifi, private_lan, public, vpn_users)
+            # 2. Zone Creation (24 commands for 4 zones: global, dmz, ext, int)
+            # Order for -N commands: global, dmz, ext, int
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
-            "iptables -N IN_guest_wifi", "ip6tables -N IN_guest_wifi",
-            "iptables -N OUT_guest_wifi", "ip6tables -N OUT_guest_wifi",
-            "iptables -N FWD_guest_wifi", "ip6tables -N FWD_guest_wifi",
-            "iptables -N IN_private_lan", "ip6tables -N IN_private_lan",
-            "iptables -N OUT_private_lan", "ip6tables -N OUT_private_lan",
-            "iptables -N FWD_private_lan", "ip6tables -N FWD_private_lan",
-            "iptables -N IN_public", "ip6tables -N IN_public",
-            "iptables -N OUT_public", "ip6tables -N OUT_public",
-            "iptables -N FWD_public", "ip6tables -N FWD_public",
-            "iptables -N IN_vpn_users", "ip6tables -N IN_vpn_users",
-            "iptables -N OUT_vpn_users", "ip6tables -N OUT_vpn_users",
-            "iptables -N FWD_vpn_users", "ip6tables -N FWD_vpn_users",
+            "iptables -N IN_dmz", "ip6tables -N IN_dmz",
+            "iptables -N OUT_dmz", "ip6tables -N OUT_dmz",
+            "iptables -N FWD_dmz", "ip6tables -N FWD_dmz",
+            "iptables -N IN_ext", "ip6tables -N IN_ext",
+            "iptables -N OUT_ext", "ip6tables -N OUT_ext",
+            "iptables -N FWD_ext", "ip6tables -N FWD_ext",
+            "iptables -N IN_int", "ip6tables -N IN_int",
+            "iptables -N OUT_int", "ip6tables -N OUT_int",
+            "iptables -N FWD_int", "ip6tables -N FWD_int",
 
-            # 3. Zone Expression Creation (24 commands - Corrected Order: global, guest_wifi, private_lan, public, vpn_users)
-            # Global
-            "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
-            "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
-            "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
-            "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
-            "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            # guest_wifi (eth1:192.168.2.0/24) - IPv4 only expressions
-            "iptables -A INPUT -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j IN_guest_wifi",
-            "iptables -A OUTPUT -o eth1 -d 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j OUT_guest_wifi",
-            "iptables -A FORWARD -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j FWD_guest_wifi",
-            # private_lan (eth1:192.168.1.0/24) - IPv4 only expressions
-            "iptables -A INPUT -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j IN_private_lan",
-            "iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j OUT_private_lan",
-            "iptables -A FORWARD -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j FWD_private_lan",
-            # public (eth0)
-            "iptables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public",
-            "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public",
-            "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public",
-            "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public",
-            "iptables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public",
-            "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public",
-            # vpn_users (tun0)
-            "iptables -A INPUT -i tun0 -m comment --comment \"Zone vpn_users\" -j IN_vpn_users",
-            "ip6tables -A INPUT -i tun0 -m comment --comment \"Zone vpn_users\" -j IN_vpn_users",
-            "iptables -A OUTPUT -o tun0 -m comment --comment \"Zone vpn_users\" -j OUT_vpn_users",
-            "ip6tables -A OUTPUT -o tun0 -m comment --comment \"Zone vpn_users\" -j OUT_vpn_users",
-            "iptables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
-            "ip6tables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
+            # 3. Zone Expression Creation (21 commands - Order: global, dmz, ext, int)
+            "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
+            "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
+            "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
+            "iptables -A INPUT -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j IN_dmz",
+            "iptables -A OUTPUT -o eth2 -d 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j OUT_dmz",
+            "iptables -A FORWARD -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j FWD_dmz",
+            "iptables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext", "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext",
+            "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext", "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext",
+            "iptables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext", "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext",
+            "iptables -A INPUT -i eth1 -m comment --comment \"Zone int\" -j IN_int", "ip6tables -A INPUT -i eth1 -m comment --comment \"Zone int\" -j IN_int",
+            "iptables -A OUTPUT -o eth1 -m comment --comment \"Zone int\" -j OUT_int", "ip6tables -A OUTPUT -o eth1 -m comment --comment \"Zone int\" -j OUT_int",
+            "iptables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int", "ip6tables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
 
-            # 4. Zone Closing (30 commands for global, guest_wifi, private_lan, public, vpn_users)
+            # 4. Rule Creation (4 commands for simple_test_rule.rule::allow_ssh_on_ext)
+            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allo \"",
+            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j ACCEPT",
+            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allo \"",
+            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j ACCEPT",
+
+            # 5. Zone Closing (24 commands for 4 zones)
+            # Order for -A ... -j RETURN commands: global, dmz, ext, int
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
-            "iptables -A IN_guest_wifi -j RETURN", "ip6tables -A IN_guest_wifi -j RETURN",
-            "iptables -A OUT_guest_wifi -j RETURN", "ip6tables -A OUT_guest_wifi -j RETURN",
-            "iptables -A FWD_guest_wifi -j RETURN", "ip6tables -A FWD_guest_wifi -j RETURN",
-            "iptables -A IN_private_lan -j RETURN", "ip6tables -A IN_private_lan -j RETURN",
-            "iptables -A OUT_private_lan -j RETURN", "ip6tables -A OUT_private_lan -j RETURN",
-            "iptables -A FWD_private_lan -j RETURN", "ip6tables -A FWD_private_lan -j RETURN",
-            "iptables -A IN_public -j RETURN", "ip6tables -A IN_public -j RETURN",
-            "iptables -A OUT_public -j RETURN", "ip6tables -A OUT_public -j RETURN",
-            "iptables -A FWD_public -j RETURN", "ip6tables -A FWD_public -j RETURN",
-            "iptables -A IN_vpn_users -j RETURN", "ip6tables -A IN_vpn_users -j RETURN",
-            "iptables -A OUT_vpn_users -j RETURN", "ip6tables -A OUT_vpn_users -j RETURN",
-            "iptables -A FWD_vpn_users -j RETURN", "ip6tables -A FWD_vpn_users -j RETURN",
+            "iptables -A IN_dmz -j RETURN", "ip6tables -A IN_dmz -j RETURN",
+            "iptables -A OUT_dmz -j RETURN", "ip6tables -A OUT_dmz -j RETURN",
+            "iptables -A FWD_dmz -j RETURN", "ip6tables -A FWD_dmz -j RETURN",
+            "iptables -A IN_ext -j RETURN", "ip6tables -A IN_ext -j RETURN",
+            "iptables -A OUT_ext -j RETURN", "ip6tables -A OUT_ext -j RETURN",
+            "iptables -A FWD_ext -j RETURN", "ip6tables -A FWD_ext -j RETURN",
+            "iptables -A IN_int -j RETURN", "ip6tables -A IN_int -j RETURN",
+            "iptables -A OUT_int -j RETURN", "ip6tables -A OUT_int -j RETURN",
+            "iptables -A FWD_int -j RETURN", "ip6tables -A FWD_int -j RETURN",
 
-            # 5. Default Policies (6 commands - discard, accept, discard)
+            # 6. Default Policies (6 commands - in=discard, out=accept, forward=discard)
             "iptables -A INPUT -j DROP", "ip6tables -A INPUT -j DROP",
             "iptables -A OUTPUT -j ACCEPT", "ip6tables -A OUTPUT -j ACCEPT",
             "iptables -A FORWARD -j DROP", "ip6tables -A FORWARD -j DROP",
@@ -380,7 +293,8 @@ vpn_users = tun0
 
         # Expected commands will need to be replaced with IPTables equivalents
         expected_commands = [
-            # 1. Init commands (31 commands)
+            # 1. Init Commands (31 commands total)
+            # constants.BASIC_IPTABLES_INIT (9 definitions * 2 for iptables/ip6tables = 18 commands)
             "iptables -F", "ip6tables -F",
             "iptables -X", "ip6tables -X",
             "iptables -Z", "ip6tables -Z",
@@ -390,11 +304,13 @@ vpn_users = tun0
             "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP", "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
+            # constants.BASIC_IP4TABLES_INIT (5 commands for iptables)
             "iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT -m comment --comment \"[ICMP] Echo Request\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/4 -j ACCEPT -m comment --comment \"[ICMP] Fragmentation needed\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/3 -j ACCEPT -m comment --comment \"[ICMP] Port unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/1 -j ACCEPT -m comment --comment \"[ICMP] Host unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 4 -j ACCEPT -m comment --comment \"[ICMP] Source Quench (RFC 792)\"",
+            # constants.BASIC_IP6TABLES_INIT (8 commands for ip6tables)
             "ip6tables -A INPUT -p 59 -j ACCEPT -m comment --comment \"[IPv6] No next header RFC2460\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 2 -j ACCEPT -m comment --comment \"[ICMPv6] Packet too big\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 3 -j ACCEPT -m comment --comment \"[ICMPv6] Time exceeded\"",
@@ -404,78 +320,60 @@ vpn_users = tun0
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 136 -j ACCEPT -m comment --comment \"[ICMPv6] Neighbor advertisement\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
-            # 2. Zone Creation (24 commands for global, dmz, ext, int)
+            # 2. Zone Creation (30 commands for 5 zones: global, guest_wifi, private_lan, public, vpn_users)
+            # Zone order for -N commands: global, guest_wifi, private_lan, public, vpn_users
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
-            "iptables -N IN_dmz", "ip6tables -N IN_dmz",
-            "iptables -N OUT_dmz", "ip6tables -N OUT_dmz",
-            "iptables -N FWD_dmz", "ip6tables -N FWD_dmz",
-            "iptables -N IN_ext", "ip6tables -N IN_ext",
-            "iptables -N OUT_ext", "ip6tables -N OUT_ext",
-            "iptables -N FWD_ext", "ip6tables -N FWD_ext",
-            "iptables -N IN_int", "ip6tables -N IN_int",
-            "iptables -N OUT_int", "ip6tables -N OUT_int",
-            "iptables -N FWD_int", "ip6tables -N FWD_int",
+            "iptables -N IN_guest_wifi", "ip6tables -N IN_guest_wifi",
+            "iptables -N OUT_guest_wifi", "ip6tables -N OUT_guest_wifi",
+            "iptables -N FWD_guest_wifi", "ip6tables -N FWD_guest_wifi",
+            "iptables -N IN_private_lan", "ip6tables -N IN_private_lan",
+            "iptables -N OUT_private_lan", "ip6tables -N OUT_private_lan",
+            "iptables -N FWD_private_lan", "ip6tables -N FWD_private_lan",
+            "iptables -N IN_public", "ip6tables -N IN_public",
+            "iptables -N OUT_public", "ip6tables -N OUT_public",
+            "iptables -N FWD_public", "ip6tables -N FWD_public",
+            "iptables -N IN_vpn_users", "ip6tables -N IN_vpn_users",
+            "iptables -N OUT_vpn_users", "ip6tables -N OUT_vpn_users",
+            "iptables -N FWD_vpn_users", "ip6tables -N FWD_vpn_users",
 
-            # 3. Zone Expression Creation (21 commands - Order: global, dmz, ext, int)
-            "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
-            "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
-            "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
-            "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
-            "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "iptables -A INPUT -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j IN_dmz",
-            "iptables -A OUTPUT -o eth2 -d 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j OUT_dmz",
-            "iptables -A FORWARD -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j FWD_dmz",
-            "iptables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext",
-            "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext",
-            "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext",
-            "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext",
-            "iptables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext",
-            "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext",
-            "iptables -A INPUT -i eth1 -m comment --comment \"Zone int\" -j IN_int",
-            "ip6tables -A INPUT -i eth1 -m comment --comment \"Zone int\" -j IN_int",
-            "iptables -A OUTPUT -o eth1 -m comment --comment \"Zone int\" -j OUT_int",
-            "ip6tables -A OUTPUT -o eth1 -m comment --comment \"Zone int\" -j OUT_int",
-            "iptables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
-            "ip6tables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
+            # 3. Zone Expression Creation (24 commands - Order: global, guest_wifi, private_lan, public, vpn_users)
+            "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
+            "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
+            "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
+            "iptables -A INPUT -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j IN_guest_wifi",
+            "iptables -A OUTPUT -o eth1 -d 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j OUT_guest_wifi",
+            "iptables -A FORWARD -i eth1 -s 192.168.2.0/24 -m comment --comment \"Zone guest_wifi\" -j FWD_guest_wifi",
+            "iptables -A INPUT -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j IN_private_lan",
+            "iptables -A OUTPUT -o eth1 -d 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j OUT_private_lan",
+            "iptables -A FORWARD -i eth1 -s 192.168.1.0/24 -m comment --comment \"Zone private_lan\" -j FWD_private_lan",
+            "iptables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public", "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone public\" -j IN_public",
+            "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public", "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone public\" -j OUT_public",
+            "iptables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public", "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone public\" -j FWD_public",
+            "iptables -A INPUT -i tun0 -m comment --comment \"Zone vpn_users\" -j IN_vpn_users", "ip6tables -A INPUT -i tun0 -m comment --comment \"Zone vpn_users\" -j IN_vpn_users",
+            "iptables -A OUTPUT -o tun0 -m comment --comment \"Zone vpn_users\" -j OUT_vpn_users", "ip6tables -A OUTPUT -o tun0 -m comment --comment \"Zone vpn_users\" -j OUT_vpn_users",
+            "iptables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users", "ip6tables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
 
-            # 4. Rule Creation (18 commands - Sorted: discard, reject, accept by name)
-            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment discard_udp_5000_to_ext -p udp --dport 5000 -j DROP",
-            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment discard_udp_5000_to_ext -p udp --dport 5000 -j DROP",
-            "iptables -A IN_dmz -m conntrack --ctstate NEW -m comment --comment reject_all_tcp_to_dmz -p tcp -j REJECT",
-            "ip6tables -A IN_dmz -m conntrack --ctstate NEW -m comment --comment reject_all_tcp_to_dmz -p tcp -j REJECT",
-            "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment icmp_ping_from_int -p icmp -j ACCEPT",
-            "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment icmp_ping_from_int -p icmp -j ACCEPT",
-            "ip6tables -A OUT_int -m conntrack --ctstate NEW -m comment --comment icmp6_ping_host_from_int -p icmpv6 -d 2001:db8:dead::beef/128 -j ACCEPT",
-            "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp6_ssh_from_host_to_int -p tcp --dport 22 -s 2001:db8:cafe:1::100/128 -j ACCEPT",
-            "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_custom_app_range_to_int -p tcp -m multiport --dport 1000:1010 -j ACCEPT",
-            "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_custom_app_range_to_int -p tcp -m multiport --dport 1000:1010 -j ACCEPT",
-            "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_ssh_from_host_to_int -p tcp --dport 22 -s 192.168.1.100/32 -j ACCEPT",
-            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j LOG --log-prefix \"tcp_web_ports_logged_to_ex \"",
-            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j ACCEPT",
-            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j LOG --log-prefix \"tcp_web_ports_logged_to_ex \"",
-            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j ACCEPT",
-            "ip6tables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp6_dns_to_server_from_ext -p udp --dport 53 -d 2001:db8:feed::1/128 -j LOG --log-prefix \"udp6_dns_to_server_from_ex \"",
-            "ip6tables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp6_dns_to_server_from_ext -p udp --dport 53 -d 2001:db8:feed::1/128 -j ACCEPT",
-            "iptables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp_dns_to_server_from_ext -p udp --dport 53 -d 8.8.8.8/32 -j ACCEPT",
-
-            # 5. Zone Closing (24 commands for global, dmz, ext, int)
+            # 4. Zone Closing (30 commands for 5 zones)
+            # Zone order for -A ... -j RETURN commands: global, guest_wifi, private_lan, public, vpn_users
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
-            "iptables -A IN_dmz -j RETURN", "ip6tables -A IN_dmz -j RETURN",
-            "iptables -A OUT_dmz -j RETURN", "ip6tables -A OUT_dmz -j RETURN",
-            "iptables -A FWD_dmz -j RETURN", "ip6tables -A FWD_dmz -j RETURN",
-            "iptables -A IN_ext -j RETURN", "ip6tables -A IN_ext -j RETURN",
-            "iptables -A OUT_ext -j RETURN", "ip6tables -A OUT_ext -j RETURN",
-            "iptables -A FWD_ext -j RETURN", "ip6tables -A FWD_ext -j RETURN",
-            "iptables -A IN_int -j RETURN", "ip6tables -A IN_int -j RETURN",
-            "iptables -A OUT_int -j RETURN", "ip6tables -A OUT_int -j RETURN",
-            "iptables -A FWD_int -j RETURN", "ip6tables -A FWD_int -j RETURN",
+            "iptables -A IN_guest_wifi -j RETURN", "ip6tables -A IN_guest_wifi -j RETURN",
+            "iptables -A OUT_guest_wifi -j RETURN", "ip6tables -A OUT_guest_wifi -j RETURN",
+            "iptables -A FWD_guest_wifi -j RETURN", "ip6tables -A FWD_guest_wifi -j RETURN",
+            "iptables -A IN_private_lan -j RETURN", "ip6tables -A IN_private_lan -j RETURN",
+            "iptables -A OUT_private_lan -j RETURN", "ip6tables -A OUT_private_lan -j RETURN",
+            "iptables -A FWD_private_lan -j RETURN", "ip6tables -A FWD_private_lan -j RETURN",
+            "iptables -A IN_public -j RETURN", "ip6tables -A IN_public -j RETURN",
+            "iptables -A OUT_public -j RETURN", "ip6tables -A OUT_public -j RETURN",
+            "iptables -A FWD_public -j RETURN", "ip6tables -A FWD_public -j RETURN",
+            "iptables -A IN_vpn_users -j RETURN", "ip6tables -A IN_vpn_users -j RETURN",
+            "iptables -A OUT_vpn_users -j RETURN", "ip6tables -A OUT_vpn_users -j RETURN",
+            "iptables -A FWD_vpn_users -j RETURN", "ip6tables -A FWD_vpn_users -j RETURN",
 
-            # 6. Default Policies (6 commands - discard, accept, discard)
+            # 5. Default Policies (6 commands - in=discard, out=accept, forward=discard)
             "iptables -A INPUT -j DROP", "ip6tables -A INPUT -j DROP",
             "iptables -A OUTPUT -j ACCEPT", "ip6tables -A OUTPUT -j ACCEPT",
             "iptables -A FORWARD -j DROP", "ip6tables -A FORWARD -j DROP",
