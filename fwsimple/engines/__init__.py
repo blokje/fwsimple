@@ -81,8 +81,10 @@ class BaseEngine:
         for zone in self.firewall.zones:
             yield from self.zone_close(zone)
 
-        # Set default policies
-        for direction in fwsimple.constants.DIRECTION:
+        # Set default policies.
+        # Iterate in fixed order (see ORDERED_DIRECTIONS in constants.py)
+        # for predictable default policy application.
+        for direction in fwsimple.constants.ORDERED_DIRECTIONS:
             policy = self.firewall.get_default_policy(direction)
             yield from self.set_default_policy(direction, policy)
 

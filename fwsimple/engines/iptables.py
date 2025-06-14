@@ -43,7 +43,8 @@ class Engine(BaseEngine):
     #
     def zone_create(self, zone: "Zone") -> Iterable[List[str]]:
         """Create the zones for iptable and ip6tables"""
-        for direction in constants.DIRECTION:
+        # Iterate in fixed order for predictable chain creation.
+        for direction in constants.ORDERED_DIRECTIONS:
             cmd = ["-N", "%s_%s" % (constants.DIRECTION[direction], zone.name)]
             yield from self.__iptables(cmd)
 
@@ -51,7 +52,8 @@ class Engine(BaseEngine):
         self, expression: "ZoneExpression"
     ) -> Iterable[List[str]]:
         """Create expressions for the zones based on interface and optional source"""
-        for direction in constants.DIRECTION:
+        # Iterate in fixed order for predictable rule generation.
+        for direction in constants.ORDERED_DIRECTIONS:
             cmd = ["-A", constants.IPTABLES_DIRECTION[direction]]
             cmd += ["-m", "comment", "--comment", "Zone %s" % expression._zone.name]
 
@@ -74,7 +76,8 @@ class Engine(BaseEngine):
 
     def zone_close(self, zone: "Zone") -> Iterable[List[str]]:
         """Finish up the zones in iptables and ip6tables"""
-        for direction in constants.DIRECTION:
+        # Iterate in fixed order for predictable chain modification.
+        for direction in constants.ORDERED_DIRECTIONS:
             cmd = ["-A", "%s_%s" % (constants.DIRECTION[direction], zone.name)]
             cmd += ["-j", "RETURN"]
             yield from self.__iptables(cmd)
