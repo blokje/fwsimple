@@ -1,5 +1,5 @@
 """ Data contains all the constants """
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, List
 
 
 if TYPE_CHECKING:
@@ -38,6 +38,12 @@ BASIC_IP6TABLES_INIT = [
 # fmt: on
 
 DIRECTION: Dict["TrafficDirection", str] = {"in": "IN", "out": "OUT", "forward": "FWD"}
+# ORDERED_DIRECTIONS defines a fixed sequence for iterating over traffic directions.
+# This is used in engines to ensure that processing (e.g., for default policies
+# or zone chain creation) occurs in a predictable, deterministic order.
+# Relying on dictionary key order (from DIRECTION) can lead to inconsistencies
+# across different Python versions or implementations.
+ORDERED_DIRECTIONS: List[str] = ["in", "out", "forward"]
 
 EXEC_IPTABLES = 1
 EXEC_PF = 2
