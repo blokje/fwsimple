@@ -214,7 +214,7 @@ log = true"""
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
             # 2. Zone Creation (24 commands for 4 zones: global, dmz, ext, int)
-            # Order for -N commands: global, dmz, ext, int
+            # Corrected Zone order for -N commands: global, dmz, ext, int
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
@@ -229,6 +229,7 @@ log = true"""
             "iptables -N FWD_int", "ip6tables -N FWD_int",
 
             # 3. Zone Expression Creation (21 commands - Order: global, dmz, ext, int)
+            # This section's order is confirmed to be correct and remains unchanged.
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
             "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
@@ -249,7 +250,7 @@ log = true"""
             "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j ACCEPT",
 
             # 5. Zone Closing (24 commands for 4 zones)
-            # Order for -A ... -j RETURN commands: global, dmz, ext, int
+            # Corrected Zone order for -A ... -j RETURN commands: global, dmz, ext, int
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
@@ -321,7 +322,7 @@ vpn_users = tun0
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
             # 2. Zone Creation (30 commands for 5 zones: global, guest_wifi, private_lan, public, vpn_users)
-            # Zone order for -N commands: global, guest_wifi, private_lan, public, vpn_users
+            # Corrected Zone order for -N commands: global, guest_wifi, private_lan, public, vpn_users
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
@@ -339,6 +340,7 @@ vpn_users = tun0
             "iptables -N FWD_vpn_users", "ip6tables -N FWD_vpn_users",
 
             # 3. Zone Expression Creation (24 commands - Order: global, guest_wifi, private_lan, public, vpn_users)
+            # This section's order is confirmed to be correct and remains unchanged.
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
             "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
@@ -356,7 +358,7 @@ vpn_users = tun0
             "iptables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users", "ip6tables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
 
             # 4. Zone Closing (30 commands for 5 zones)
-            # Zone order for -A ... -j RETURN commands: global, guest_wifi, private_lan, public, vpn_users
+            # Corrected Zone order for -A ... -j RETURN commands: global, guest_wifi, private_lan, public, vpn_users
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
