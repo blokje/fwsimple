@@ -88,27 +88,26 @@ forward = discard
 
         # Expected commands will need to be replaced with IPTables equivalents
         expected_commands = [
-            # Init commands (BASIC_IPTABLES_INIT for iptables)
+            # Init commands (constants.BASIC_IPTABLES_INIT - 9 pairs = 18 commands)
             "iptables -F",
-            "iptables -X",
-            "iptables -Z",
-            "iptables -A INPUT -i lo -j ACCEPT",
-            "iptables -A OUTPUT -o lo -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP",
-            # Init commands (BASIC_IPTABLES_INIT for ip6tables)
             "ip6tables -F",
+            "iptables -X",
             "ip6tables -X",
+            "iptables -Z",
             "ip6tables -Z",
+            "iptables -A INPUT -i lo -j ACCEPT",
             "ip6tables -A INPUT -i lo -j ACCEPT",
+            "iptables -A OUTPUT -o lo -j ACCEPT",
             "ip6tables -A OUTPUT -o lo -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
             "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP",
             "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
-            # BASIC_IP4TABLES_INIT for iptables
+            # BASIC_IP4TABLES_INIT for iptables (5 commands)
             "iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT -m comment --comment \"[ICMP] Echo Request\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/4 -j ACCEPT -m comment --comment \"[ICMP] Fragmentation needed\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/3 -j ACCEPT -m comment --comment \"[ICMP] Port unreachable\"",
@@ -259,24 +258,24 @@ action = accept
 
         # Expected commands will need to be replaced with IPTables equivalents
         expected_commands = [
-            # 1. Init commands (30 commands)
-            "iptables -F", "iptables -X", "iptables -Z",
-            "iptables -A INPUT -i lo -j ACCEPT", "iptables -A OUTPUT -o lo -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP",
+            # 1. Init commands (31 commands)
+            # BASIC_IPTABLES_INIT (9 pairs = 18 commands)
+            "iptables -F", "ip6tables -F",
+            "iptables -X", "ip6tables -X",
+            "iptables -Z", "ip6tables -Z",
+            "iptables -A INPUT -i lo -j ACCEPT", "ip6tables -A INPUT -i lo -j ACCEPT",
+            "iptables -A OUTPUT -o lo -j ACCEPT", "ip6tables -A OUTPUT -o lo -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP", "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
+            # BASIC_IP4TABLES_INIT (5 commands)
             "iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT -m comment --comment \"[ICMP] Echo Request\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/4 -j ACCEPT -m comment --comment \"[ICMP] Fragmentation needed\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/3 -j ACCEPT -m comment --comment \"[ICMP] Port unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/1 -j ACCEPT -m comment --comment \"[ICMP] Host unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 4 -j ACCEPT -m comment --comment \"[ICMP] Source Quench (RFC 792)\"",
-            "ip6tables -F", "ip6tables -X", "ip6tables -Z",
-            "ip6tables -A INPUT -i lo -j ACCEPT", "ip6tables -A OUTPUT -o lo -j ACCEPT",
-            "ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
+            # BASIC_IP6TABLES_INIT (8 commands)
             "ip6tables -A INPUT -p 59 -j ACCEPT -m comment --comment \"[IPv6] No next header RFC2460\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 2 -j ACCEPT -m comment --comment \"[ICMPv6] Packet too big\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 3 -j ACCEPT -m comment --comment \"[ICMPv6] Time exceeded\"",
@@ -286,29 +285,24 @@ action = accept
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 136 -j ACCEPT -m comment --comment \"[ICMPv6] Neighbor advertisement\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
-            # 2. Zone Creation (30 commands)
-            # global
+            # 2. Zone Creation (30 commands for global, guest_wifi, private_lan, public, vpn_users)
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
-            # guest_wifi
             "iptables -N IN_guest_wifi", "ip6tables -N IN_guest_wifi",
             "iptables -N OUT_guest_wifi", "ip6tables -N OUT_guest_wifi",
             "iptables -N FWD_guest_wifi", "ip6tables -N FWD_guest_wifi",
-            # private_lan
             "iptables -N IN_private_lan", "ip6tables -N IN_private_lan",
             "iptables -N OUT_private_lan", "ip6tables -N OUT_private_lan",
             "iptables -N FWD_private_lan", "ip6tables -N FWD_private_lan",
-            # public
             "iptables -N IN_public", "ip6tables -N IN_public",
             "iptables -N OUT_public", "ip6tables -N OUT_public",
             "iptables -N FWD_public", "ip6tables -N FWD_public",
-            # vpn_users
             "iptables -N IN_vpn_users", "ip6tables -N IN_vpn_users",
             "iptables -N OUT_vpn_users", "ip6tables -N OUT_vpn_users",
             "iptables -N FWD_vpn_users", "ip6tables -N FWD_vpn_users",
 
-            # 3. Zone Expression Creation (24 commands)
+            # 3. Zone Expression Creation (24 commands - Corrected Order: global, guest_wifi, private_lan, public, vpn_users)
             # Global
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
@@ -339,29 +333,24 @@ action = accept
             "iptables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
             "ip6tables -A FORWARD -i tun0 -m comment --comment \"Zone vpn_users\" -j FWD_vpn_users",
 
-            # 4. Zone Closing (30 commands)
-            # global
+            # 4. Zone Closing (30 commands for global, guest_wifi, private_lan, public, vpn_users)
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
-            # guest_wifi
             "iptables -A IN_guest_wifi -j RETURN", "ip6tables -A IN_guest_wifi -j RETURN",
             "iptables -A OUT_guest_wifi -j RETURN", "ip6tables -A OUT_guest_wifi -j RETURN",
             "iptables -A FWD_guest_wifi -j RETURN", "ip6tables -A FWD_guest_wifi -j RETURN",
-            # private_lan
             "iptables -A IN_private_lan -j RETURN", "ip6tables -A IN_private_lan -j RETURN",
             "iptables -A OUT_private_lan -j RETURN", "ip6tables -A OUT_private_lan -j RETURN",
             "iptables -A FWD_private_lan -j RETURN", "ip6tables -A FWD_private_lan -j RETURN",
-            # public
             "iptables -A IN_public -j RETURN", "ip6tables -A IN_public -j RETURN",
             "iptables -A OUT_public -j RETURN", "ip6tables -A OUT_public -j RETURN",
             "iptables -A FWD_public -j RETURN", "ip6tables -A FWD_public -j RETURN",
-            # vpn_users
             "iptables -A IN_vpn_users -j RETURN", "ip6tables -A IN_vpn_users -j RETURN",
             "iptables -A OUT_vpn_users -j RETURN", "ip6tables -A OUT_vpn_users -j RETURN",
             "iptables -A FWD_vpn_users -j RETURN", "ip6tables -A FWD_vpn_users -j RETURN",
 
-            # 5. Default Policies (6 commands)
+            # 5. Default Policies (6 commands - discard, accept, discard)
             "iptables -A INPUT -j DROP", "ip6tables -A INPUT -j DROP",
             "iptables -A OUTPUT -j ACCEPT", "ip6tables -A OUTPUT -j ACCEPT",
             "iptables -A FORWARD -j DROP", "ip6tables -A FORWARD -j DROP",
@@ -391,24 +380,21 @@ vpn_users = tun0
 
         # Expected commands will need to be replaced with IPTables equivalents
         expected_commands = [
-            # 1. Init commands (30 commands)
-            "iptables -F", "iptables -X", "iptables -Z",
-            "iptables -A INPUT -i lo -j ACCEPT", "iptables -A OUTPUT -o lo -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP",
+            # 1. Init commands (31 commands)
+            "iptables -F", "ip6tables -F",
+            "iptables -X", "ip6tables -X",
+            "iptables -Z", "ip6tables -Z",
+            "iptables -A INPUT -i lo -j ACCEPT", "ip6tables -A INPUT -i lo -j ACCEPT",
+            "iptables -A OUTPUT -o lo -j ACCEPT", "ip6tables -A OUTPUT -o lo -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT", "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
+            "iptables -A INPUT -m conntrack --ctstate INVALID -j DROP", "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT -m comment --comment \"[ICMP] Echo Request\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/4 -j ACCEPT -m comment --comment \"[ICMP] Fragmentation needed\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/3 -j ACCEPT -m comment --comment \"[ICMP] Port unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 3/1 -j ACCEPT -m comment --comment \"[ICMP] Host unreachable\"",
             "iptables -A INPUT -p icmp -m icmp --icmp-type 4 -j ACCEPT -m comment --comment \"[ICMP] Source Quench (RFC 792)\"",
-            "ip6tables -F", "ip6tables -X", "ip6tables -Z",
-            "ip6tables -A INPUT -i lo -j ACCEPT", "ip6tables -A OUTPUT -o lo -j ACCEPT",
-            "ip6tables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT",
-            "ip6tables -A INPUT -m conntrack --ctstate INVALID -j DROP",
             "ip6tables -A INPUT -p 59 -j ACCEPT -m comment --comment \"[IPv6] No next header RFC2460\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 2 -j ACCEPT -m comment --comment \"[ICMPv6] Packet too big\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 3 -j ACCEPT -m comment --comment \"[ICMPv6] Time exceeded\"",
@@ -418,7 +404,7 @@ vpn_users = tun0
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 136 -j ACCEPT -m comment --comment \"[ICMPv6] Neighbor advertisement\"",
             "ip6tables -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type 128 -j ACCEPT -m comment --comment \"[ICMPv6] Echo Request\"",
 
-            # 2. Zone Creation (global, ext, int, dmz - 24 commands)
+            # 2. Zone Creation (24 commands for global, dmz, ext, int)
             "iptables -N IN_global", "ip6tables -N IN_global",
             "iptables -N OUT_global", "ip6tables -N OUT_global",
             "iptables -N FWD_global", "ip6tables -N FWD_global",
@@ -432,7 +418,7 @@ vpn_users = tun0
             "iptables -N OUT_int", "ip6tables -N OUT_int",
             "iptables -N FWD_int", "ip6tables -N FWD_int",
 
-            # 3. Zone Expression Creation (global, dmz, ext, int - 21 commands)
+            # 3. Zone Expression Creation (21 commands - Order: global, dmz, ext, int)
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
@@ -455,36 +441,27 @@ vpn_users = tun0
             "iptables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
             "ip6tables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
 
-            # 4. Rule Creation (Sorted: discard, reject, accept by name - 17 commands)
-            # discard_udp_5000_to_ext
+            # 4. Rule Creation (18 commands - Sorted: discard, reject, accept by name)
             "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment discard_udp_5000_to_ext -p udp --dport 5000 -j DROP",
             "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment discard_udp_5000_to_ext -p udp --dport 5000 -j DROP",
-            # reject_all_tcp_to_dmz
             "iptables -A IN_dmz -m conntrack --ctstate NEW -m comment --comment reject_all_tcp_to_dmz -p tcp -j REJECT",
             "ip6tables -A IN_dmz -m conntrack --ctstate NEW -m comment --comment reject_all_tcp_to_dmz -p tcp -j REJECT",
-            # icmp6_ping_host_from_int
-            "ip6tables -A OUT_int -m conntrack --ctstate NEW -m comment --comment icmp6_ping_host_from_int -p icmpv6 -d 2001:db8:dead::beef/128 -j ACCEPT",
-            # icmp_ping_from_int
             "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment icmp_ping_from_int -p icmp -j ACCEPT",
-            # tcp6_ssh_from_host_to_int
+            "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment icmp_ping_from_int -p icmp -j ACCEPT",
+            "ip6tables -A OUT_int -m conntrack --ctstate NEW -m comment --comment icmp6_ping_host_from_int -p icmpv6 -d 2001:db8:dead::beef/128 -j ACCEPT",
             "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp6_ssh_from_host_to_int -p tcp --dport 22 -s 2001:db8:cafe:1::100/128 -j ACCEPT",
-            # tcp_custom_app_range_to_int
             "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_custom_app_range_to_int -p tcp -m multiport --dport 1000:1010 -j ACCEPT",
             "ip6tables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_custom_app_range_to_int -p tcp -m multiport --dport 1000:1010 -j ACCEPT",
-            # tcp_ssh_from_host_to_int
             "iptables -A IN_int -m conntrack --ctstate NEW -m comment --comment tcp_ssh_from_host_to_int -p tcp --dport 22 -s 192.168.1.100/32 -j ACCEPT",
-            # tcp_web_ports_logged_to_ext
             "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j LOG --log-prefix \"tcp_web_ports_logged_to_ex \"",
             "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j ACCEPT",
             "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j LOG --log-prefix \"tcp_web_ports_logged_to_ex \"",
             "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment tcp_web_ports_logged_to_ext -p tcp -m multiport --dport 80,443 -j ACCEPT",
-            # udp6_dns_to_server_from_ext
             "ip6tables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp6_dns_to_server_from_ext -p udp --dport 53 -d 2001:db8:feed::1/128 -j LOG --log-prefix \"udp6_dns_to_server_from_ex \"",
             "ip6tables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp6_dns_to_server_from_ext -p udp --dport 53 -d 2001:db8:feed::1/128 -j ACCEPT",
-            # udp_dns_to_server_from_ext
             "iptables -A OUT_ext -m conntrack --ctstate NEW -m comment --comment udp_dns_to_server_from_ext -p udp --dport 53 -d 8.8.8.8/32 -j ACCEPT",
 
-            # 5. Zone Closing (global, ext, int, dmz - 24 commands)
+            # 5. Zone Closing (24 commands for global, dmz, ext, int)
             "iptables -A IN_global -j RETURN", "ip6tables -A IN_global -j RETURN",
             "iptables -A OUT_global -j RETURN", "ip6tables -A OUT_global -j RETURN",
             "iptables -A FWD_global -j RETURN", "ip6tables -A FWD_global -j RETURN",
@@ -498,7 +475,7 @@ vpn_users = tun0
             "iptables -A OUT_int -j RETURN", "ip6tables -A OUT_int -j RETURN",
             "iptables -A FWD_int -j RETURN", "ip6tables -A FWD_int -j RETURN",
 
-            # 6. Default Policies (6 commands)
+            # 6. Default Policies (6 commands - discard, accept, discard)
             "iptables -A INPUT -j DROP", "ip6tables -A INPUT -j DROP",
             "iptables -A OUTPUT -j ACCEPT", "ip6tables -A OUTPUT -j ACCEPT",
             "iptables -A FORWARD -j DROP", "ip6tables -A FORWARD -j DROP",
