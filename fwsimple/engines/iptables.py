@@ -53,7 +53,6 @@ class Engine(BaseEngine):
         """Create expressions for the zones based on interface and optional source"""
         for direction in constants.DIRECTION:
             cmd = ["-A", constants.IPTABLES_DIRECTION[direction]]
-            cmd += ["-m", "comment", "--comment", "Zone %s" % expression._zone.name]
 
             if expression.interface:
                 if direction == "out":
@@ -64,6 +63,8 @@ class Engine(BaseEngine):
                     cmd += ["-i", expression.interface]
                     if expression.source:
                         cmd += ["-s", str(expression.source)]
+
+            cmd += ["-m", "comment", "--comment", "Zone %s" % expression._zone.name]
 
             cmd += [
                 "-j",

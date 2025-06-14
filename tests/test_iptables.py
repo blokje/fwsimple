@@ -55,7 +55,7 @@ class IPTablesTestCase(unittest.TestCase):
     def assert_commands_equal(self, actual_commands: List[str], expected_commands: List[str]):
         # Normalize commands by removing potential iptables/ip6tables executable path if present
         # and stripping extra whitespace from each command string.
-        normalize = lambda cmd_str: cmd_str.replace("iptables ", "", 1).replace("ip6tables ", "", 1).strip()
+        normalize = lambda cmd_str: cmd_str.strip()
 
         actual_normalized = [normalize(cmd) for cmd in actual_commands]
         expected_normalized = [normalize(cmd) for cmd in expected_commands]
@@ -233,9 +233,9 @@ log = true"""
             "iptables -A INPUT -m comment --comment \"Zone global\" -j IN_global", "ip6tables -A INPUT -m comment --comment \"Zone global\" -j IN_global",
             "iptables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global", "ip6tables -A OUTPUT -m comment --comment \"Zone global\" -j OUT_global",
             "iptables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global", "ip6tables -A FORWARD -m comment --comment \"Zone global\" -j FWD_global",
-            "iptables -A INPUT -m comment --comment \"Zone dmz\" -i eth2 -s 10.0.1.0/24 -j IN_dmz",
-            "iptables -A OUTPUT -m comment --comment \"Zone dmz\" -o eth2 -d 10.0.1.0/24 -j OUT_dmz",
-            "iptables -A FORWARD -m comment --comment \"Zone dmz\" -i eth2 -s 10.0.1.0/24 -j FWD_dmz",
+            "iptables -A INPUT -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j IN_dmz",
+            "iptables -A OUTPUT -o eth2 -d 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j OUT_dmz",
+            "iptables -A FORWARD -i eth2 -s 10.0.1.0/24 -m comment --comment \"Zone dmz\" -j FWD_dmz",
             "iptables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext", "ip6tables -A INPUT -i eth0 -m comment --comment \"Zone ext\" -j IN_ext",
             "iptables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext", "ip6tables -A OUTPUT -o eth0 -m comment --comment \"Zone ext\" -j OUT_ext",
             "iptables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext", "ip6tables -A FORWARD -i eth0 -m comment --comment \"Zone ext\" -j FWD_ext",
@@ -244,9 +244,9 @@ log = true"""
             "iptables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int", "ip6tables -A FORWARD -i eth1 -m comment --comment \"Zone int\" -j FWD_int",
 
             # 4. Rule Creation (4 commands for simple_test_rule.rule::allow_ssh_on_ext)
-            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allo \"",
+            "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allow \"",
+            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allow \"",
             "iptables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j ACCEPT",
-            "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j LOG --log-prefix \"simple_test_rule.rule::allo \"",
             "ip6tables -A IN_ext -m conntrack --ctstate NEW -m comment --comment simple_test_rule.rule::allow_ssh_on_ext -p tcp --dport 22 -j ACCEPT",
 
             # 5. Zone Closing (24 commands for 4 zones)
